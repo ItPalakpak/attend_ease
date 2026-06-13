@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark-glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Centralized Retro-Modern Design Scheme */
+:root {
+  --brutalist-shadow-offset: 3px;
+  --brutalist-shadow-color: #0f172a;
+  --brutalist-shadow-color-dark: rgba(255, 255, 255, 0.25);
+  --brutalist-border-radius: 0px;
+}
+
+.dark {
+  --brutalist-shadow-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Strip rounded corners and apply offset shadows except inside Sidebar (aside), Header (header), loaders, and blurred decorations */
+*:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl)[class*="rounded"] {
+  border-radius: var(--brutalist-border-radius) !important;
+  box-shadow: var(--brutalist-shadow-offset) var(--brutalist-shadow-offset) 0px 0px var(--brutalist-shadow-color) !important;
+}
+
+/* For elements inside dark containers (e.g., login page) */
+.from-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl)[class*="rounded"],
+.bg-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl)[class*="rounded"] {
+  box-shadow: var(--brutalist-shadow-offset) var(--brutalist-shadow-offset) 0px 0px var(--brutalist-shadow-color-dark) !important;
+}
+
+/* Adjust shadow offsets for small components (e.g., rounded-full, rounded-sm) */
+*:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-full,
+*:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-sm {
+  box-shadow: calc(var(--brutalist-shadow-offset) / 2) calc(var(--brutalist-shadow-offset) / 2) 0px 0px var(--brutalist-shadow-color) !important;
+}
+
+.from-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-full,
+.from-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-sm,
+.bg-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-full,
+.bg-slate-900 *:not(aside):not(header):not(aside *):not(header *):not(.animate-spin):not(.blur):not(.blur-sm):not(.blur-md):not(.blur-lg):not(.blur-xl):not(.blur-2xl):not(.blur-3xl).rounded-sm {
+  box-shadow: calc(var(--brutalist-shadow-offset) / 2) calc(var(--brutalist-shadow-offset) / 2) 0px 0px var(--brutalist-shadow-color-dark) !important;
+}
+
+/* Sidebar navigation buttons and logout button override: square corners, no offset shadow */
+aside nav a[class*="rounded"],
+aside div.border-t button[class*="rounded"] {
+  border-radius: var(--brutalist-border-radius) !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================
+   DARK MODE COMPONENT GLOBAL OVERRIDES
+   ========================================== */
+
+/* Page Backgrounds */
+.dark .bg-slate-50 {
+  background-color: #0b0f19 !important;
+}
+
+.dark main {
+  background-color: #0b0f19 !important;
+}
+
+.dark .min-h-screen.bg-slate-50 {
+  background-color: #0b0f19 !important;
+}
+
+.dark header {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-bottom-color: #1f2937 !important;
+}
+
+/* Cards & Panels */
+.dark .bg-white {
+  background-color: #111827 !important; /* Deep Slate */
+  color: #f1f5f9 !important;
+}
+
+/* Borders */
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/50,
+.dark .border-slate-300 {
+  border-color: #1f2937 !important; /* Slate 800 */
+}
+
+/* Text Colors */
+.dark .text-slate-800,
+.dark .text-slate-750,
+.dark .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-650,
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-450,
+.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Inner Layout Elements */
+.dark .bg-slate-50\/50 {
+  background-color: rgba(17, 24, 39, 0.5) !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1f2937 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .hover\:bg-slate-50:hover {
+  background-color: #1f2937 !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #1f2937 !important;
+}
+
+/* Form Inputs, Selects and Textareas */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #f97316 !important; /* Logistics Orange Accent */
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+}
+
+/* Date and Time Pickers */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+}
+
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+}
+
+/* Tables */
+.dark table thead tr {
+  border-bottom-color: #1f2937 !important;
+}
+
+.dark table tbody tr {
+  border-bottom-color: #1f2937 !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: #1f2937 !important;
+}
+
+.dark table th {
+  color: #94a3b8 !important;
+}
+
+.dark table td {
+  color: #cbd5e1 !important;
+}
+
+/* Badges / Badges inside Tables */
+.dark .rounded-full.bg-slate-100 {
+  background-color: #1f2937 !important;
+  color: #94a3b8 !important;
+}
+
+/* Overriding specifically for scan interface */
+.dark .bg-emerald-50\/20 {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+.dark .bg-amber-50\/20 {
+  background-color: rgba(245, 158, 11, 0.05) !important;
+}
+
+.dark .bg-rose-50\/20 {
+  background-color: rgba(244, 63, 94, 0.05) !important;
+}
+
+/* Modals overlays & Dialog boxes */
+.dark .fixed.inset-0.bg-slate-900\/50,
+.dark .bg-slate-900\/50 {
+  background-color: rgba(9, 13, 22, 0.7) !important;
+}
+
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+}
