@@ -439,7 +439,7 @@ export default function SettingsPage() {
               <div className="flex justify-end pt-4 border-t border-slate-50">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-sky-500/10 hover:bg-sky-600 transition active:scale-95"
+                  className="flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95"
                 >
                   <Save size={16} />
                   <span>Save Profile Rules</span>
@@ -506,7 +506,7 @@ export default function SettingsPage() {
               <div className="flex justify-end pt-4 border-t border-slate-50">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-sky-500/10 hover:bg-sky-600 transition active:scale-95"
+                  className="flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95"
                 >
                   <Lock size={16} />
                   <span>Update Password</span>
@@ -524,7 +524,7 @@ export default function SettingsPage() {
                 </h3>
                 <button
                   onClick={handleOpenAddFilter}
-                  className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-600 transition active:scale-95"
+                  className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-3.5 py-2 text-xs font-bold text-black shadow-sm hover:bg-sky-600 transition active:scale-95"
                 >
                   <Plus size={14} />
                   <span>Add Filter</span>
@@ -689,7 +689,7 @@ export default function SettingsPage() {
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-500/10 hover:bg-sky-600 transition"
+              className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition"
             >
               Save Definition
             </button>

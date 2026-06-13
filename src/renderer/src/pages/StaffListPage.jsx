@@ -95,7 +95,7 @@ export default function StaffListPage() {
         </div>
         <button
           onClick={() => navigate('/staff/new')}
-          className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-sky-500/20 transition-all hover:bg-sky-600 active:scale-95"
+          className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition-all hover:bg-sky-600 active:scale-95"
         >
           <Plus size={16} />
           <span>Add New Staff</span>

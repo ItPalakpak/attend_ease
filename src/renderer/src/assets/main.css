@@ -189,8 +189,8 @@ aside div.border-t button[class*="rounded"] {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus {
-  border-color: #f97316 !important; /* Logistics Orange Accent */
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  border-color: #ffd300 !important; /* Logistics Vibrant Racing Yellow Accent */
+  box-shadow: 0 0 0 2px rgba(255, 211, 0, 0.2) !important;
 }
 
 /* Date and Time Pickers */

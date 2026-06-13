@@ -61,10 +61,10 @@ export default function ConfirmDialog({
               onConfirm()
               onClose()
             }}
-            className={`rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition ${
+            className={`rounded-xl px-4 py-2 text-sm shadow-sm transition ${
               isDanger 
-                ? 'bg-red-650 bg-red-600 hover:bg-red-700 focus:ring-red-550' 
-                : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
+                ? 'bg-red-650 bg-red-600 text-white font-medium hover:bg-red-700 focus:ring-red-550' 
+                : 'bg-primary-600 text-black font-bold hover:bg-primary-700 focus:ring-primary-500'
             }`}
           >
             {confirmText}

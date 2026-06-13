@@ -135,7 +135,7 @@ export default function BackupRestorePage() {
           <button
             onClick={handleCreateBackup}
             disabled={isBackingUp}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-white shadow-md shadow-sky-500/20 transition hover:bg-sky-600 active:scale-98 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-98 disabled:opacity-50"
           >
             {isBackingUp ? (
               <>

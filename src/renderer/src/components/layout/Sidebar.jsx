@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import logoIcon from '../../assets/icon.png'
 import {
   LayoutDashboard,
   Users,
@@ -70,8 +71,8 @@ export default function Sidebar() {
 
       {/* Brand Section */}
       <div className="flex items-center gap-3 px-4 pt-6 pb-5 border-b border-slate-800/60">
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-lg shadow-sky-500/20 shrink-0">
-          <Fingerprint className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-lg shadow-sky-500/20 shrink-0 p-1.5">
+          <img src={logoIcon} alt="AttendEase Logo" className="w-full h-full object-contain" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">

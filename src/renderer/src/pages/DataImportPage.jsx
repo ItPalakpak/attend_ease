@@ -172,7 +172,7 @@ export default function DataImportPage() {
             <button
               type="submit"
               disabled={!filePath || isUploading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-white shadow-md shadow-sky-500/10 hover:bg-sky-600 transition active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               {isUploading ? (
                 <>

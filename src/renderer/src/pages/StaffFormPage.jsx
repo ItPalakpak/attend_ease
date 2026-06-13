@@ -428,7 +428,7 @@ export default function StaffFormPage() {
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-sm font-bold text-white shadow-md shadow-sky-500/20 hover:bg-sky-600 transition active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95"
           >
             <Save size={16} />
             <span>Save Staff Record</span>

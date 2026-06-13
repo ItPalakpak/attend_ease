@@ -84,8 +84,8 @@ export default function DashboardPage() {
       label: 'Late Today',
       value: stats.lateToday,
       icon: Clock,
-      gradient: 'from-amber-400 to-orange-500',
-      shadow: 'shadow-amber-500/10'
+      gradient: 'from-primary-300 to-primary-600',
+      shadow: 'shadow-primary-500/10'
     },
     {
       label: 'Absent Today',

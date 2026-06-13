@@ -326,7 +326,7 @@ export default function ReportsPage() {
               </button>
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition hover:bg-sky-600 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition hover:bg-sky-600 active:scale-95"
               >
                 <FileText size={16} />
                 <span>Export PDF</span>

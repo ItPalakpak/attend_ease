@@ -72,7 +72,7 @@ export default function StaffProfilePage() {
         <p className="text-sm text-slate-500">The requested staff record does not exist or has been deleted.</p>
         <button
           onClick={() => navigate('/staff')}
-          className="rounded-xl bg-sky-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-sky-600"
+          className="rounded-xl bg-sky-500 px-5 py-2 text-sm font-bold text-black transition hover:bg-sky-600"
         >
           Back to Staff List
         </button>
@@ -107,7 +107,7 @@ export default function StaffProfilePage() {
           </button>
           <button
             onClick={() => navigate(`/id-cards/${staff.id}`)}
-            className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition hover:bg-sky-600 active:scale-95"
+            className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition hover:bg-sky-600 active:scale-95"
           >
             <CreditCard size={16} />
             <span>Generate ID Card</span>

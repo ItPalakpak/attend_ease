@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Fingerprint, Lock, User, AlertCircle, Loader2, X, Eye } from 'lucide-react'
+import logoIcon from '../assets/icon.png'
 
 // CHANGED: added custom SVG component for a closed eye icon (no slash) per requirements
 function ClosedEyeIcon({ size = 18, className = '' }) {
@@ -73,8 +74,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 p-8 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20">
         <div className="flex flex-col items-center text-center">
           {/* Logo Icon */}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-lg shadow-blue-500/30">
-            <Fingerprint size={36} className="animate-pulse" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-lg shadow-blue-500/30 p-2.5">
+            <img src={logoIcon} alt="AttendEase Logo" className="w-full h-full object-contain" />
           </div>
           
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white">
@@ -162,7 +163,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:from-sky-450 hover:to-blue-550 hover:shadow-blue-500/35 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:pointer-events-none disabled:opacity-50"
+            className="group relative flex w-full justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 text-sm font-bold text-black shadow-lg transition-all hover:from-sky-450 hover:to-blue-550 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:pointer-events-none disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
