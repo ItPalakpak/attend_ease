@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, UserCheck, Clock, UserX, Shield, Building2, RefreshCw } from 'lucide-react'
+import { Users, UserCheck, Clock, UserX, Shield, Building2 } from 'lucide-react'
 import StatusBadge from '../components/ui/StatusBadge'
 
 export default function DashboardPage() {
@@ -15,7 +15,6 @@ export default function DashboardPage() {
   })
   const [attendance, setAttendance] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const navigate = useNavigate()
 
   const getTodayStr = () => {
@@ -26,8 +25,7 @@ export default function DashboardPage() {
     return `${year}-${month}-${day}`
   }
 
-  const fetchDashboardData = async () => {
-    setIsRefreshing(true)
+  const fetchDashboardData = useCallback(async () => {
     try {
       const todayStr = getTodayStr()
       const statsRes = await window.api.getDashboardStats(todayStr)
@@ -46,16 +44,22 @@ export default function DashboardPage() {
       console.error('Error fetching dashboard stats:', err)
     } finally {
       setIsLoading(false)
-      setIsRefreshing(false)
+      window.dispatchEvent(new Event('header-refresh-complete'))
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchDashboardData()
-    // Optional polling every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchDashboardData])
+
+  // Listen for refresh from header
+  useEffect(() => {
+    const handler = () => fetchDashboardData()
+    window.addEventListener('header-refresh', handler)
+    return () => window.removeEventListener('header-refresh', handler)
+  }, [fetchDashboardData])
 
   if (isLoading) {
     return (
@@ -112,21 +116,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Dashboard Overview</h1>
-          <p className="text-sm text-slate-500">Real-time attendance tracking and organization summary</p>
-        </div>
-        <button
-          onClick={fetchDashboardData}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
-      </div>
+
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

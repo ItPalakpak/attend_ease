@@ -109,11 +109,7 @@ export default function DepartmentsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Department Management</h1>
-          <p className="text-sm text-slate-500">Manage organizational divisions and departments</p>
-        </div>
+      <div className="flex items-center justify-end">
         <button
           onClick={handleOpenAddModal}
           className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition-all hover:bg-sky-600 active:scale-95"

@@ -109,47 +109,41 @@ export default function DataImportPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Dataset Import</h1>
-        <p className="text-sm text-slate-500">Import CSV or Excel sheets for advanced filtering and calculations (parcels weight counting)</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+      <div className="flex-1 min-h-0 grid grid-cols-1 gap-6 lg:grid-cols-12 overflow-hidden pb-1 pr-1">
         {/* Left side upload form */}
-        <div className="lg:col-span-5 space-y-6">
-          <form onSubmit={handleImportSubmit} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-2 h-full bg-sky-500" />
-            <h2 className="text-base font-bold text-slate-800">Import New Dataset</h2>
+        <div className="lg:col-span-5 flex flex-col h-full max-h-full pb-1 pr-1">
+          <form onSubmit={handleImportSubmit} className="flex-1 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-5 shadow-lg space-y-4 relative pr-1 pb-1">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-sky-500" />
+            <h2 className="text-sm font-bold text-slate-800">Import New Dataset</h2>
 
             {uploadStatus.message && (
-              <div className={`flex items-start gap-2 rounded-xl border p-4 text-xs leading-relaxed ${
+              <div className={`flex items-start gap-2 rounded-xl border p-3 text-xs leading-relaxed ${
                 uploadStatus.type === 'success'
                   ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
                   : 'border-red-500/20 bg-red-50/50 text-red-650'
               }`}>
-                {uploadStatus.type === 'success' ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+                {uploadStatus.type === 'success' ? <CheckCircle2 size={14} className="shrink-0 mt-0.5" /> : <AlertCircle size={14} className="shrink-0 mt-0.5" />}
                 <span>{uploadStatus.message}</span>
               </div>
             )}
 
             {/* Browser area */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">File Path</label>
+              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">File Path</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   readOnly
                   placeholder="No file chosen..."
                   value={filePath}
-                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 outline-none truncate"
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 outline-none truncate"
                 />
                 <button
                   type="button"
                   onClick={handleBrowseFile}
                   disabled={isUploading}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
                 >
                   Browse
                 </button>
@@ -158,13 +152,13 @@ export default function DataImportPage() {
 
             {/* Description */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Description (Optional)</label>
+              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">Description (Optional)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. June Parcel Delivery Data"
-                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-                rows={3}
+                className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                rows={2}
                 disabled={isUploading}
               />
             </div>
@@ -172,16 +166,16 @@ export default function DataImportPage() {
             <button
               type="submit"
               disabled={!filePath || isUploading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 py-2 text-xs font-bold text-black shadow-md hover:bg-sky-600 transition active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Processing File...</span>
                 </>
               ) : (
                 <>
-                  <Upload size={16} />
+                  <Upload size={14} />
                   <span>Process Import</span>
                 </>
               )}
@@ -190,37 +184,37 @@ export default function DataImportPage() {
         </div>
 
         {/* Right side history table */}
-        <div className="lg:col-span-7">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-4">
-            <h2 className="text-base font-bold text-slate-800">Dataset History</h2>
+        <div className="lg:col-span-7 flex flex-col h-full overflow-hidden pb-1 pr-1">
+          <div className="flex flex-col h-full border border-slate-100 bg-white p-5 shadow-lg rounded-2xl overflow-hidden">
+            <h2 className="text-sm font-bold text-slate-800 shrink-0 mb-3">Dataset History</h2>
 
             {isLoading ? (
-              <div className="flex h-40 items-center justify-center">
+              <div className="flex-1 flex items-center justify-center">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
               </div>
             ) : datasets.length === 0 ? (
-              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
+              <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
                 <DatabaseZap size={36} className="stroke-1 animate-pulse" />
                 <p className="mt-2 text-sm">No datasets have been imported yet.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left">
+              <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+                <table className="w-full border-collapse text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                      <th className="py-2.5 px-3">File Name</th>
-                      <th className="py-2.5 px-3">Description</th>
-                      <th className="py-2.5 px-3">Rows</th>
-                      <th className="py-2.5 px-3">Import Date</th>
-                      <th className="py-2.5 px-3 text-right">Action</th>
+                    <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                      <th className="py-2.5 px-3 bg-white">File Name</th>
+                      <th className="py-2.5 px-3 bg-white">Description</th>
+                      <th className="py-2.5 px-3 bg-white">Rows</th>
+                      <th className="py-2.5 px-3 bg-white">Import Date</th>
+                      <th className="py-2.5 px-3 bg-white text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50 text-xs text-slate-700">
+                  <tbody className="divide-y divide-slate-50 text-slate-700 font-medium">
                     {datasets.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-50 transition-all">
-                        <td className="py-3 px-3">
+                      <tr key={d.id} className="hover:bg-slate-50/50 transition-all">
+                        <td className="py-2 px-3">
                           <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-slate-400 shrink-0" />
+                            <FileText size={14} className="text-slate-400 shrink-0" />
                             <div>
                               <p className="font-semibold text-slate-800 truncate max-w-[140px]" title={d.file_name}>
                                 {d.file_name}
@@ -231,20 +225,21 @@ export default function DataImportPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-slate-500 max-w-[120px] truncate" title={d.description}>
+                        <td className="py-2 px-3 text-slate-550 max-w-[120px] truncate" title={d.description}>
                           {d.description || 'N/A'}
                         </td>
-                        <td className="py-3 px-3 font-mono font-semibold text-slate-650">{d.row_count}</td>
-                        <td className="py-3 px-3 text-slate-450 font-mono">
+                        <td className="py-2 px-3 font-mono font-bold text-slate-650">{d.row_count}</td>
+                        <td className="py-2 px-3 text-slate-450 font-mono text-[10px]">
                           {d.imported_at ? new Date(d.imported_at).toLocaleDateString() : 'N/A'}
                         </td>
-                        <td className="py-3 px-3 text-right">
+                        <td className="py-2 px-3 text-right">
                           <button
                             onClick={() => handleOpenDeleteConfirm(d)}
-                            title="Delete Dataset"
-                            className="rounded-lg p-1.5 text-slate-555 hover:bg-red-50 hover:text-red-650 transition"
+                            data-tooltip="Delete Dataset"
+                            data-tooltip-pos="left"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-650 transition"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </td>
                       </tr>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { ScrollText, Search, RefreshCw, FileWarning } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { ScrollText, Search, FileWarning } from 'lucide-react'
 
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([])
@@ -7,10 +7,8 @@ export default function AuditLogPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [actionFilter, setActionFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const fetchLogs = async () => {
-    setIsRefreshing(true)
+  const fetchLogs = useCallback(async () => {
     try {
       const res = await window.api.getAuditLogs()
       setLogs(res || [])
@@ -18,13 +16,20 @@ export default function AuditLogPage() {
       console.error('Failed to fetch audit logs:', err)
     } finally {
       setIsLoading(false)
-      setIsRefreshing(false)
+      window.dispatchEvent(new Event('header-refresh-complete'))
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchLogs()
-  }, [])
+  }, [fetchLogs])
+
+  // Listen for refresh from header
+  useEffect(() => {
+    const handler = () => fetchLogs()
+    window.addEventListener('header-refresh', handler)
+    return () => window.removeEventListener('header-refresh', handler)
+  }, [fetchLogs])
 
   useEffect(() => {
     let result = logs
@@ -101,25 +106,9 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Security Audit Logs</h1>
-          <p className="text-sm text-slate-500">Track all administrative operations and database updates</p>
-        </div>
-        <button
-          onClick={fetchLogs}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
-      </div>
-
+    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="shrink-0 flex flex-col gap-4 sm:flex-row sm:items-center rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
             <Search size={18} />
@@ -129,16 +118,16 @@ export default function AuditLogPage() {
             placeholder="Search logs by operator, details, or entity..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+            className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-4 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-400 shrink-0">Action Category:</span>
+          <span className="text-[10px] font-semibold text-slate-400 shrink-0">Action Category:</span>
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+            className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
           >
             <option value="all">All Actions</option>
             <option value="ADD">Create / Add</option>
@@ -149,38 +138,38 @@ export default function AuditLogPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-100 bg-white p-5 shadow-lg flex flex-col overflow-hidden">
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
             <FileWarning size={36} className="stroke-1 animate-pulse" />
             <p className="mt-2 text-sm font-semibold">No audit logs found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+            <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Entity Type</th>
-                  <th className="py-3 px-4">Details</th>
-                  <th className="py-3 px-4">Performed By</th>
+                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                  <th className="py-2.5 px-3 bg-white">Timestamp</th>
+                  <th className="py-2.5 px-3 bg-white">Action</th>
+                  <th className="py-2.5 px-3 bg-white">Entity Type</th>
+                  <th className="py-2.5 px-3 bg-white">Details</th>
+                  <th className="py-2.5 px-3 bg-white">Performed By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
+              <tbody className="divide-y divide-slate-50 text-slate-700">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50 transition-all">
-                    <td className="py-3 px-4 font-mono text-xs font-medium text-slate-500">
+                  <tr key={log.id} className="hover:bg-slate-50/50 transition-all">
+                    <td className="py-2 px-3 font-mono text-[10px] font-medium text-slate-500">
                       {log.performed_at ? new Date(log.performed_at).toLocaleString() : 'N/A'}
                     </td>
-                    <td className="py-3 px-4">{getActionBadge(log.action)}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-650">{log.entity_type}</td>
-                    <td className="py-3 px-4">{renderDetails(log.details)}</td>
-                    <td className="py-3 px-4 font-bold text-slate-800">{log.performed_by || 'System'}</td>
+                    <td className="py-2 px-3">{getActionBadge(log.action)}</td>
+                    <td className="py-2 px-3 font-semibold text-slate-650">{log.entity_type}</td>
+                    <td className="py-2 px-3">{renderDetails(log.details)}</td>
+                    <td className="py-2 px-3 font-bold text-slate-800">{log.performed_by || 'System'}</td>
                   </tr>
                 ))}
               </tbody>

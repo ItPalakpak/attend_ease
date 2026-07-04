@@ -20,6 +20,13 @@ import {
   deleteFilterDefinition
 } from './db/dataimport.js'
 import { createBackup, restoreBackup } from './db/backup.js'
+import {
+  getGasolineSubsidies,
+  saveGasolineEntry,
+  deleteGasolineEntry,
+  importGasolineFromExcel,
+  getRiderWeeklyUsage
+} from './db/gasoline.js'
 
 export function registerIpcHandlers() {
   // --- Native Dialogs ---
@@ -206,5 +213,26 @@ export function registerIpcHandlers() {
   // --- Audit Logs ---
   ipcMain.handle('system:get-audits', async () => {
     return getAuditLogs()
+  })
+
+  // --- Gasoline Subsidies ---
+  ipcMain.handle('gasoline:get-all', async (event, { startDate, endDate }) => {
+    return getGasolineSubsidies(startDate, endDate)
+  })
+
+  ipcMain.handle('gasoline:save', async (event, entry) => {
+    return saveGasolineEntry(entry)
+  })
+
+  ipcMain.handle('gasoline:delete', async (event, id) => {
+    return deleteGasolineEntry(id)
+  })
+
+  ipcMain.handle('gasoline:import-excel', async (event, filePath) => {
+    return importGasolineFromExcel(filePath)
+  })
+
+  ipcMain.handle('gasoline:get-weekly-usage', async (event, { staffId, dateStr }) => {
+    return getRiderWeeklyUsage(staffId, dateStr)
   })
 }

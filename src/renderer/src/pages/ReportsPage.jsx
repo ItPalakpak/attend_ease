@@ -257,17 +257,9 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Attendance Reports</h1>
-          <p className="text-sm text-slate-500">Generate, view, and export organization attendance metrics</p>
-        </div>
-      </div>
-
+    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Selectors Panel */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+      <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end justify-between">
           <div className="flex flex-wrap gap-4 items-center">
             {/* Type */}
@@ -276,7 +268,7 @@ export default function ReportsPage() {
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
-                className="w-40 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                className="w-40 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
               >
                 <option value="daily">Daily Report</option>
                 <option value="monthly">Monthly Summary</option>
@@ -291,7 +283,7 @@ export default function ReportsPage() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
             ) : (
@@ -301,7 +293,7 @@ export default function ReportsPage() {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
             )}
@@ -312,23 +304,23 @@ export default function ReportsPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleExportExcel}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
               >
-                <Download size={16} />
+                <Download size={14} />
                 <span>Excel</span>
               </button>
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-705 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-705 shadow-sm transition hover:bg-slate-50 active:scale-95"
               >
-                <Download size={16} />
+                <Download size={14} />
                 <span>CSV</span>
               </button>
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition hover:bg-sky-600 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl bg-sky-500 px-4 py-1.5 text-xs font-bold text-black shadow-md transition hover:bg-sky-600 active:scale-95"
               >
-                <FileText size={16} />
+                <FileText size={14} />
                 <span>Export PDF</span>
               </button>
             </div>
@@ -337,94 +329,94 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex items-center gap-4">
-          <div className="rounded-xl bg-sky-50 p-3 text-sky-500">
-            <Table size={24} />
+      <div className="shrink-0 grid grid-cols-1 gap-5 sm:grid-cols-4">
+        <div className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-sm flex items-center gap-4">
+          <div className="rounded-xl bg-sky-50 p-2.5 text-sky-500">
+            <Table size={20} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Entries</p>
-            <p className="text-xl font-bold text-slate-800 mt-0.5">{summary.total}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Entries</p>
+            <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.total}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex items-center gap-4">
-          <div className="rounded-xl bg-emerald-50 p-3 text-emerald-500">
-            <CheckCircle size={24} />
+        <div className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-sm flex items-center gap-4">
+          <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-500">
+            <CheckCircle size={20} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Present Today</p>
-            <p className="text-xl font-bold text-slate-800 mt-0.5">{summary.present}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Present Today</p>
+            <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.present}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex items-center gap-4">
-          <div className="rounded-xl bg-amber-50 p-3 text-amber-500">
-            <Clock size={24} />
+        <div className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-sm flex items-center gap-4">
+          <div className="rounded-xl bg-amber-50 p-2.5 text-amber-500">
+            <Clock size={20} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Late Entries</p>
-            <p className="text-xl font-bold text-slate-800 mt-0.5">{summary.late}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Late Entries</p>
+            <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.late}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex items-center gap-4">
-          <div className="rounded-xl bg-rose-50 p-3 text-rose-500">
-            <XCircle size={24} />
+        <div className="rounded-2xl border border-slate-100 bg-white p-3.5 shadow-sm flex items-center gap-4">
+          <div className="rounded-xl bg-rose-50 p-2.5 text-rose-500">
+            <XCircle size={20} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Absent Entries</p>
-            <p className="text-xl font-bold text-slate-800 mt-0.5">{summary.absent}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Absent Entries</p>
+            <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.absent}</p>
           </div>
         </div>
       </div>
 
       {/* Preview Table */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
-        <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4">Report Preview</h3>
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-100 bg-white p-5 shadow-lg flex flex-col overflow-hidden">
+        <h3 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 shrink-0">Report Preview</h3>
 
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
           </div>
         ) : records.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
             <AlertCircle size={36} className="stroke-1" />
             <p className="mt-2 text-sm">No records to preview for selected period.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+            <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  {reportType === 'monthly' && <th className="py-2.5 px-3">Date</th>}
-                  <th className="py-2.5 px-3">Staff ID</th>
-                  <th className="py-2.5 px-3">Name</th>
-                  <th className="py-2.5 px-3">Department</th>
-                  <th className="py-2.5 px-3">Position</th>
-                  <th className="py-2.5 px-3">Time In</th>
-                  <th className="py-2.5 px-3">Time Out</th>
-                  <th className="py-2.5 px-3">Status</th>
+                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                  {reportType === 'monthly' && <th className="py-2.5 px-3 bg-white">Date</th>}
+                  <th className="py-2.5 px-3 bg-white">Staff ID</th>
+                  <th className="py-2.5 px-3 bg-white">Name</th>
+                  <th className="py-2.5 px-3 bg-white">Department</th>
+                  <th className="py-2.5 px-3 bg-white">Position</th>
+                  <th className="py-2.5 px-3 bg-white">Time In</th>
+                  <th className="py-2.5 px-3 bg-white">Time Out</th>
+                  <th className="py-2.5 px-3 bg-white">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
+              <tbody className="divide-y divide-slate-50 text-slate-700">
                 {records.map((r, index) => (
-                  <tr key={index} className="hover:bg-slate-50 transition-all">
+                  <tr key={index} className="hover:bg-slate-50/50 transition-all">
                     {reportType === 'monthly' && (
-                      <td className="py-2.5 px-3 font-semibold text-slate-600">{r.date}</td>
+                      <td className="py-2 px-3 font-semibold text-slate-600">{r.date}</td>
                     )}
-                    <td className="py-2.5 px-3 font-mono text-xs text-slate-500">
+                    <td className="py-2 px-3 font-mono text-[10px] text-slate-500">
                       {r.formatted_id || r.staff_id}
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-800">
+                    <td className="py-2 px-3 font-bold text-slate-800">
                       {r.first_name} {r.last_name}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-550">{r.department_name}</td>
-                    <td className="py-2.5 px-3 text-slate-550">{r.role_name}</td>
-                    <td className="py-2.5 px-3 font-mono text-xs">{r.time_in || '--:--'}</td>
-                    <td className="py-2.5 px-3 font-mono text-xs">{r.time_out || '--:--'}</td>
-                    <td className="py-2.5 px-3">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                    <td className="py-2 px-3 text-slate-500">{r.department_name}</td>
+                    <td className="py-2 px-3 text-slate-500">{r.role_name}</td>
+                    <td className="py-2 px-3 font-mono text-[10px]">{r.time_in || '--:--'}</td>
+                    <td className="py-2 px-3 font-mono text-[10px]">{r.time_out || '--:--'}</td>
+                    <td className="py-2 px-3">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
                         r.status === 'Present'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                           : r.status === 'Late'

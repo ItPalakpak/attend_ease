@@ -86,24 +86,9 @@ export default function StaffListPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Staff Management</h1>
-          <p className="text-sm text-slate-500">View and manage staff records, designations, and security credentials</p>
-        </div>
-        <button
-          onClick={() => navigate('/staff/new')}
-          className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-black shadow-md transition-all hover:bg-sky-600 active:scale-95"
-        >
-          <Plus size={16} />
-          <span>Add New Staff</span>
-        </button>
-      </div>
-
+    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Controls panel */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm lg:flex-row lg:items-center">
+      <div className="shrink-0 flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
         {/* Search */}
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -114,20 +99,18 @@ export default function StaffListPage() {
             placeholder="Search by name, staff ID, or employee number..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+            className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-4 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
           />
         </div>
 
         {/* Filters */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-
-
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400">Status:</span>
+            <span className="text-[10px] font-semibold text-slate-400">Status:</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
             >
               <option value="all">All Statuses</option>
               <option value="Active">Active</option>
@@ -137,38 +120,46 @@ export default function StaffListPage() {
             </select>
           </div>
         </div>
+
+        {/* Add New Staff */}
+        <button
+          onClick={() => navigate('/staff/new')}
+          className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-black shadow-md transition-all hover:bg-sky-600 active:scale-95 shrink-0"
+        >
+          <Plus size={14} />
+          <span>Add New Staff</span>
+        </button>
       </div>
 
       {/* Staff Table */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-100 bg-white p-5 shadow-lg flex flex-col overflow-hidden">
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
           </div>
         ) : filteredStaff.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
             <Users2 size={36} className="stroke-1" />
             <p className="mt-2 text-sm">No staff records found matching the criteria.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+            <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  <th className="py-3 px-4">Staff</th>
-                  <th className="py-3 px-4">Staff ID</th>
-                  <th className="py-3 px-4">Position</th>
-
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                  <th className="py-2.5 px-3 bg-white">Staff</th>
+                  <th className="py-2.5 px-3 bg-white">Staff ID</th>
+                  <th className="py-2.5 px-3 bg-white">Position</th>
+                  <th className="py-2.5 px-3 bg-white">Status</th>
+                  <th className="py-2.5 px-3 bg-white text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
+              <tbody className="divide-y divide-slate-50 text-slate-700">
                 {filteredStaff.map((staff) => (
-                  <tr key={staff.id} className="group transition-all hover:bg-slate-50">
-                    <td className="py-3 px-4">
+                  <tr key={staff.id} className="group transition-all hover:bg-slate-50/50">
+                    <td className="py-2 px-3">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-100">
+                        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-100">
                           {staff.photo_path ? (
                             <img
                               src={`media:///${staff.photo_path.replace(/\\/g, '/')}`}
@@ -180,7 +171,7 @@ export default function StaffListPage() {
                               }}
                             />
                           ) : null}
-                          <div className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-sm font-bold text-slate-650 ${staff.photo_path ? 'hidden' : ''}`}>
+                          <div className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-[10px] font-bold text-slate-650 ${staff.photo_path ? 'hidden' : ''}`}>
                             {staff.first_name?.[0]}{staff.last_name?.[0]}
                           </div>
                         </div>
@@ -188,49 +179,49 @@ export default function StaffListPage() {
                           <p className="font-semibold text-slate-800 group-hover:text-sky-600 transition">
                             {staff.first_name} {staff.last_name}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-[9px] text-slate-400">
                             Emp No: {staff.employee_number || 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-mono text-xs font-semibold text-slate-600">
+                    <td className="py-2 px-3 font-mono text-[10px] font-semibold text-slate-600">
                       {staff.formatted_id || staff.staff_id}
                     </td>
-                    <td className="py-3 px-4 text-slate-500 font-medium">{staff.role_name || 'Unassigned'}</td>
-
-                    <td className="py-3 px-4">
+                    <td className="py-2 px-3 text-slate-500 font-medium">{staff.role_name || 'Unassigned'}</td>
+                    <td className="py-2 px-3">
                       <StatusBadge status={staff.employment_status} />
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex justify-end gap-2">
+                    <td className="py-2 px-3 text-right">
+                      <div className="flex justify-end gap-1">
                         <button
                           onClick={() => navigate(`/staff/${staff.id}`)}
-                          title="View Profile"
-                          className="rounded-lg p-1.5 text-slate-555 hover:bg-slate-100 hover:text-sky-600 transition"
+                          data-tooltip="View Profile"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
                         >
-                          <Eye size={16} />
+                          <Eye size={14} />
                         </button>
                         <button
                           onClick={() => navigate(`/staff/edit/${staff.id}`)}
-                          title="Edit Staff"
-                          className="rounded-lg p-1.5 text-slate-555 hover:bg-slate-100 hover:text-sky-600 transition"
+                          data-tooltip="Edit Staff"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={14} />
                         </button>
                         <button
                           onClick={() => navigate(`/id-cards/${staff.id}`)}
-                          title="ID Card"
-                          className="rounded-lg p-1.5 text-slate-555 hover:bg-slate-100 hover:text-sky-600 transition"
+                          data-tooltip="ID Card"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
                         >
-                          <CreditCard size={16} />
+                          <CreditCard size={14} />
                         </button>
                         <button
                           onClick={() => handleOpenDeleteConfirm(staff)}
-                          title="Delete Staff"
-                          className="rounded-lg p-1.5 text-slate-555 hover:bg-red-50 hover:text-red-600 transition"
+                          data-tooltip="Delete Staff"
+                          data-tooltip-pos="left"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

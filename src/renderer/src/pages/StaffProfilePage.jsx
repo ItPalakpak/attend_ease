@@ -14,6 +14,8 @@ export default function StaffProfilePage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isRegenQRConfirmOpen, setIsRegenQRConfirmOpen] = useState(false)
   const [isRegeningQR, setIsRegeningQR] = useState(false)
+  const [photoBase64, setPhotoBase64] = useState(null)
+  const [qrBase64, setQrBase64] = useState(null)
 
   const fetchStaffDetails = async () => {
     try {
@@ -55,7 +57,34 @@ export default function StaffProfilePage() {
       setIsRegenQRConfirmOpen(false)
     }
   }
-
+  useEffect(() => {
+    let active = true
+    const loadImages = async () => {
+      if (!staff) {
+        if (active) {
+          setPhotoBase64(null)
+          setQrBase64(null)
+        }
+        return
+      }
+      if (staff.photo_path) {
+        const b64 = await window.api.readFileAsBase64(staff.photo_path)
+        if (active) setPhotoBase64(b64 || null)
+      } else {
+        if (active) setPhotoBase64(null)
+      }
+      if (staff.qr_code_path) {
+        const b64 = await window.api.readFileAsBase64(staff.qr_code_path)
+        if (active) setQrBase64(b64 || null)
+      } else {
+        if (active) setQrBase64(null)
+      }
+    }
+    loadImages()
+    return () => {
+      active = false
+    }
+  }, [staff])
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -91,10 +120,6 @@ export default function StaffProfilePage() {
           >
             <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Staff Profile</h1>
-            <p className="text-sm text-slate-500">Employee details, role history, and security QR code</p>
-          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -129,20 +154,17 @@ export default function StaffProfilePage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg text-center space-y-6">
             {/* Photo */}
             <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-full ring-4 ring-slate-100">
-              {staff.photo_path ? (
+              {photoBase64 ? (
                 <img
-                  src={`media:///${staff.photo_path.replace(/\\/g, '/')}`}
+                  src={photoBase64}
                   alt={`${staff.first_name} ${staff.last_name}`}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
                 />
-              ) : null}
-              <div className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-3xl font-bold text-slate-650 ${staff.photo_path ? 'hidden' : ''}`}>
-                {staff.first_name?.[0]}{staff.last_name?.[0]}
-              </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-3xl font-bold text-slate-500">
+                  {staff.first_name?.[0]}{staff.last_name?.[0]}
+                </div>
+              )}
             </div>
 
             <div>
@@ -160,9 +182,9 @@ export default function StaffProfilePage() {
             <div className="border-t border-slate-100 pt-6 space-y-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Attendance QR Code</p>
               <div className="flex justify-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                {staff.qr_code_path ? (
+                {qrBase64 ? (
                   <img
-                    src={`media:///${staff.qr_code_path.replace(/\\/g, '/')}?t=${new Date().getTime()}`} // Bypass caching
+                    src={qrBase64}
                     alt="QR Code"
                     className="h-32 w-32"
                   />

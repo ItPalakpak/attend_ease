@@ -148,14 +148,6 @@ export default function StaffFormPage() {
           >
             <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              {isEditMode ? 'Edit Staff Profile' : 'Add New Staff'}
-            </h1>
-            <p className="text-sm text-slate-500">
-              {isEditMode ? 'Modify employee information and status' : 'Create a new staff profile in the database'}
-            </p>
-          </div>
         </div>
       </div>
 

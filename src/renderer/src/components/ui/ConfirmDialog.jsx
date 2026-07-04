@@ -24,7 +24,7 @@ export default function ConfirmDialog({
   const isDanger = type === 'danger'
 
   return (
-    <div className="fixed inset-0 z-55 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
@@ -32,26 +32,26 @@ export default function ConfirmDialog({
       />
       
       {/* Container */}
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl transition-all">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border-[3px] border-slate-900 bg-white p-5 shadow-2xl transition-all">
         <div className="flex items-start gap-4">
           {/* Icon */}
-          <div className={`rounded-full p-3 ${isDanger ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
-            {isDanger ? <AlertTriangle size={24} /> : <Info size={24} />}
+          <div className={`rounded-full border-2 border-slate-900 p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isDanger ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+            {isDanger ? <AlertTriangle size={20} /> : <Info size={20} />}
           </div>
 
           {/* Details */}
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">{message}</p>
+            <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">{title}</h3>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">{message}</p>
           </div>
         </div>
 
         {/* Buttons */}
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex justify-end gap-3 pb-1 pr-1">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+            className="rounded-none border-2 border-slate-900 px-4 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
           >
             {cancelText}
           </button>
@@ -61,10 +61,10 @@ export default function ConfirmDialog({
               onConfirm()
               onClose()
             }}
-            className={`rounded-xl px-4 py-2 text-sm shadow-sm transition ${
+            className={`rounded-none border-2 border-slate-900 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all ${
               isDanger 
-                ? 'bg-red-650 bg-red-600 text-white font-medium hover:bg-red-700 focus:ring-red-550' 
-                : 'bg-primary-600 text-black font-bold hover:bg-primary-700 focus:ring-primary-500'
+                ? 'bg-red-500 text-white hover:bg-red-600' 
+                : 'bg-sky-500 text-slate-950 hover:bg-sky-600'
             }`}
           >
             {confirmText}

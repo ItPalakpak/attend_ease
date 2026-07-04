@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, protocol, net } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, net, session } from 'electron'
 import { join } from 'path'
 import { pathToFileURL } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -21,11 +21,6 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-// Disable GPU hardware acceleration to prevent crashes on systems with incompatible graphics drivers
-app.commandLine.appendSwitch('disable-gpu')
-app.commandLine.appendSwitch('disable-software-rasterizer')
-app.commandLine.appendSwitch('disable-gpu-sandbox')
-app.disableHardwareAcceleration()
 
 
 function createWindow() {
@@ -67,6 +62,17 @@ function createWindow() {
 app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
+
+  // Grant camera/media permissions for QR code scanning
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    const allowed = ['media', 'mediaKeySystem', 'display-capture']
+    callback(allowed.includes(permission))
+  })
+
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
+    const allowed = ['media', 'mediaKeySystem']
+    return allowed.includes(permission)
+  })
 
   // Initialize MySQL database & schema
   try {

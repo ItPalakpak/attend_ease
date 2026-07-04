@@ -20,23 +20,44 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Fingerprint
+  Fingerprint,
+  Fuel
 } from 'lucide-react'
 
-const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Staff', icon: Users, path: '/staff' },
-  { label: 'Scan Attendance', icon: ScanLine, path: '/scan' },
-  { label: 'Attendance History', icon: CalendarClock, path: '/attendance' },
-  { label: 'Reports', icon: FileBarChart2, path: '/reports' },
-  { label: 'Roles', icon: Shield, path: '/roles' },
-  { label: 'ID Cards', icon: CreditCard, path: '/id-cards' },
-  { label: 'Data Import', icon: DatabaseZap, path: '/data-import' },
-  { label: 'Analytics', icon: TrendingUp, path: '/analytics' },
-  { label: 'Filter Config', icon: SlidersHorizontal, path: '/filter-config' },
-  { label: 'Settings', icon: Settings, path: '/settings' },
-  { label: 'Backup', icon: HardDriveDownload, path: '/backup' },
-  { label: 'Audit Logs', icon: ScrollText, path: '/audit-logs' }
+const navGroups = [
+  {
+    groupName: 'General',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Scan Attendance', icon: ScanLine, path: '/scan' },
+      { label: 'Analytics', icon: TrendingUp, path: '/analytics' }
+    ]
+  },
+  {
+    groupName: 'Management',
+    items: [
+      { label: 'Staff', icon: Users, path: '/staff' },
+      { label: 'Roles', icon: Shield, path: '/roles' },
+      { label: 'ID Cards', icon: CreditCard, path: '/id-cards' }
+    ]
+  },
+  {
+    groupName: 'Records',
+    items: [
+      { label: 'Attendance History', icon: CalendarClock, path: '/attendance' },
+      { label: 'Gasoline Subsidy', icon: Fuel, path: '/gasoline' },
+      { label: 'Reports', icon: FileBarChart2, path: '/reports' },
+      { label: 'Audit Logs', icon: ScrollText, path: '/audit-logs' }
+    ]
+  },
+  {
+    groupName: 'System',
+    items: [
+      { label: 'Data Import', icon: DatabaseZap, path: '/data-import' },
+      { label: 'Backup', icon: HardDriveDownload, path: '/backup' },
+      { label: 'Settings', icon: Settings, path: '/settings' }
+    ]
+  }
 ]
 
 export default function Sidebar() {
@@ -90,7 +111,7 @@ export default function Sidebar() {
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="
-          absolute -right-3 top-20 z-10
+          absolute -right-3 top-20 z-30
           w-6 h-6 rounded-full
           bg-slate-800 border border-slate-700
           flex items-center justify-center
@@ -98,70 +119,72 @@ export default function Sidebar() {
           transition-all duration-200
           shadow-lg
         "
-        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        data-tooltip={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        data-tooltip-pos="right"
       >
         {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-2 space-y-0.5 scrollbar-thin">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const active = isActive(item.path)
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={collapsed ? item.label : undefined}
-              className={`
-                group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
-                transition-all duration-200 ease-out
-                ${
-                  active
-                    ? 'bg-sky-500/10 text-sky-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                }
-              `}
-            >
-              {/* Active indicator bar */}
-              {active && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-r-full bg-gradient-to-b from-sky-400 to-blue-500 shadow-md shadow-sky-500/30" />
-              )}
+      <nav className={`flex-1 py-4 px-2 space-y-4 scrollbar-thin ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
+        {navGroups.map((group, groupIdx) => (
+          <div key={group.groupName} className="space-y-0.5">
+            {/* Group Header or Divider */}
+            {collapsed ? (
+              groupIdx > 0 && (
+                <div className="my-2 border-t border-slate-800/40 mx-2" />
+              )
+            ) : (
+              <div className={`px-3 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider ${groupIdx > 0 ? 'mt-4' : 'mt-1'}`}>
+                {group.groupName}
+              </div>
+            )}
 
-              <Icon
-                className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
-                  active ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300'
-                } group-hover:scale-110`}
-              />
-
-              {!collapsed && (
-                <span
-                  className={`text-sm font-medium truncate transition-colors duration-200 ${
-                    active ? 'text-sky-300' : ''
-                  }`}
+            {/* Group Items */}
+            {group.items.map((item) => {
+              const Icon = item.icon
+              const active = isActive(item.path)
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  data-tooltip={collapsed ? item.label : undefined}
+                  data-tooltip-pos="right"
+                  className={`
+                    group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
+                    transition-all duration-200 ease-out
+                    ${
+                      active
+                        ? 'bg-sky-500/10 text-sky-400'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }
+                  `}
                 >
-                  {item.label}
-                </span>
-              )}
+                  {/* Active indicator bar */}
+                  {active && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-r-full bg-gradient-to-b from-sky-400 to-blue-500 shadow-md shadow-sky-500/30" />
+                  )}
 
-              {/* Tooltip for collapsed state */}
-              {collapsed && (
-                <div className="
-                  absolute left-full ml-3 px-2.5 py-1.5
-                  bg-slate-800 text-white text-xs font-medium
-                  rounded-md shadow-xl border border-slate-700
-                  opacity-0 invisible group-hover:opacity-100 group-hover:visible
-                  transition-all duration-200
-                  whitespace-nowrap z-50
-                  pointer-events-none
-                ">
-                  {item.label}
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-800 border-l border-b border-slate-700 rotate-45" />
-                </div>
-              )}
-            </Link>
-          )
-        })}
+                  <Icon
+                    className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
+                      active ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300'
+                    } group-hover:scale-110`}
+                  />
+
+                  {!collapsed && (
+                    <span
+                      className={`text-sm font-medium truncate transition-colors duration-200 ${
+                        active ? 'text-sky-300' : ''
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User / Logout Section */}
@@ -173,7 +196,8 @@ export default function Sidebar() {
             text-slate-400 hover:text-rose-400 hover:bg-rose-500/10
             transition-all duration-200
           `}
-          title={collapsed ? 'Logout' : undefined}
+          data-tooltip={collapsed ? 'Logout' : undefined}
+          data-tooltip-pos="right"
         >
           <LogOut className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
           {!collapsed && (

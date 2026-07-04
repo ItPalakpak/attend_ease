@@ -64,7 +64,14 @@ const api = {
   restoreSystem: (backupPath) => ipcRenderer.invoke('system:restore', backupPath),
 
   // Audit Logs
-  getAuditLogs: () => ipcRenderer.invoke('system:get-audits')
+  getAuditLogs: () => ipcRenderer.invoke('system:get-audits'),
+
+  // Gasoline Subsidies
+  getGasolineSubsidies: (params) => ipcRenderer.invoke('gasoline:get-all', params),
+  saveGasolineEntry: (entry) => ipcRenderer.invoke('gasoline:save', entry),
+  deleteGasolineEntry: (id) => ipcRenderer.invoke('gasoline:delete', id),
+  importGasolineExcel: (filePath) => ipcRenderer.invoke('gasoline:import-excel', filePath),
+  getWeeklyGasolineUsage: (params) => ipcRenderer.invoke('gasoline:get-weekly-usage', params)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

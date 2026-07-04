@@ -21,7 +21,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
@@ -29,15 +29,15 @@ export default function Modal({ isOpen, onClose, title, children }) {
       />
       
       {/* Modal Container */}
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl transition-all flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border-[3px] border-slate-900 bg-white shadow-2xl transition-all flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 p-5">
-          <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+        <div className="flex items-center justify-between border-b-2 border-slate-900 bg-slate-50 p-4 shrink-0">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">{title}</h3>
           <button 
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition"
+            className="border-2 border-slate-900 bg-white hover:bg-slate-100 text-slate-900 p-1 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all"
           >
-            <X size={18} />
+            <X size={14} />
           </button>
         </div>
 

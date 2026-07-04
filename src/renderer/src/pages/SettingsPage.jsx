@@ -286,11 +286,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">System Configurations</h1>
-        <p className="text-sm text-slate-500">Configure attendance rules, admin profile, and custom dynamic filters for imported spreadsheets</p>
-      </div>
+
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         {/* Navigation Sidebar */}

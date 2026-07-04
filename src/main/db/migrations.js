@@ -127,6 +127,22 @@ export async function runMigrations() {
       status VARCHAR(20) DEFAULT 'Active',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB;`,
+
+    // 12. gasoline_subsidies table
+    `CREATE TABLE IF NOT EXISTS gasoline_subsidies (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      staff_id INT NOT NULL,
+      liters DECIMAL(5,2) NOT NULL,
+      date VARCHAR(20) NOT NULL,
+      amount DECIMAL(10,2) NOT NULL,
+      subsidy DECIMAL(10,2) NOT NULL,
+      status VARCHAR(20) DEFAULT 'unpaid',
+      is_promo TINYINT(1) DEFAULT 0,
+      promo_value DECIMAL(10,2) DEFAULT 0.00,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE CASCADE
     ) ENGINE=InnoDB;`
   ]
 
@@ -145,20 +161,20 @@ export async function runMigrations() {
     console.log('Seeded default admin user (username: admin, password: admin123)')
   }
 
-  // Seed default settings if none exists
-  const [settingsRows] = await db.query('SELECT COUNT(*) as count FROM settings')
-  if (settingsRows[0].count === 0) {
-    const defaultSettings = [
-      { key: 'present_cutoff', value: '08:00' },
-      { key: 'late_cutoff', value: '08:15' },
-      { key: 'work_start', value: '08:00' },
-      { key: 'org_name', value: 'My Organization' },
-      { key: 'org_address', value: 'Manila, Philippines' },
-      { key: 'working_days', value: JSON.stringify([1, 2, 3, 4, 5]) }
-    ]
-    for (const setting of defaultSettings) {
-      await db.query('INSERT INTO settings (\`key\`, \`value\`) VALUES (?, ?)', [setting.key, setting.value])
-    }
-    console.log('Seeded default application settings')
+  // Seed default settings using INSERT IGNORE so new settings are always added safely
+  const defaultSettings = [
+    { key: 'present_cutoff', value: '08:00' },
+    { key: 'late_cutoff', value: '08:15' },
+    { key: 'work_start', value: '08:00' },
+    { key: 'org_name', value: 'My Organization' },
+    { key: 'org_address', value: 'Manila, Philippines' },
+    { key: 'working_days', value: JSON.stringify([1, 2, 3, 4, 5]) },
+    { key: 'gasoline_price', value: '80' },
+    { key: 'gasoline_discount', value: '0.6' },
+    { key: 'gasoline_weekly_limit', value: '3' }
+  ]
+  for (const setting of defaultSettings) {
+    await db.query('INSERT IGNORE INTO settings (\`key\`, \`value\`) VALUES (?, ?)', [setting.key, setting.value])
   }
+  console.log('Seeded default application settings')
 }

@@ -1,15 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { ScanLine, CheckCircle2, AlertTriangle, Clock, Play, Square, RefreshCw } from 'lucide-react'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { ScanLine, CheckCircle2, AlertTriangle, Clock, Camera, CameraOff, Info } from 'lucide-react'
+import { Html5Qrcode } from 'html5-qrcode'
 
 export default function AttendanceScanPage() {
   const [scanMode, setScanMode] = useState('in') // 'in' or 'out'
   const [now, setNow] = useState(new Date())
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [scanResult, setScanResult] = useState(null) // { success, message, staff: {...}, attendance: {...} }
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanResult, setScanResult] = useState(null)
+  const [warnResult, setWarnResult] = useState(null) // for "already scanned" warning
   const [errorMsg, setErrorMsg] = useState('')
 
+  // Refs to avoid stale closures and prevent duplicate scanners
   const scannerRef = useRef(null)
+  const isRunningRef = useRef(false)
+  const cooldownRef = useRef(false)
+  const scanModeRef = useRef(scanMode)
+  const resultTimerRef = useRef(null)
+
+  // Keep scanModeRef in sync so the decode callback always reads current mode
+  useEffect(() => {
+    scanModeRef.current = scanMode
+  }, [scanMode])
 
   // Clock ticking
   useEffect(() => {
@@ -17,105 +28,185 @@ export default function AttendanceScanPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // QR Scanner Lifecycle
+  // Cleanup on unmount only
   useEffect(() => {
-    setErrorMsg('')
-    
-    // Create element placeholder if not exists
-    const qrDiv = document.getElementById('qr-reader')
-    if (!qrDiv) return
-
-    const qrScanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        showTorchButtonIfSupported: true
-      },
-      /* verbose= */ false
-    )
-
-    qrScanner.render(
-      async (decodedText) => {
-        if (isProcessing) return
-        setIsProcessing(true)
-        setErrorMsg('')
-        setScanResult(null)
-
-        try {
-          // Parse scanned JSON
-          let scannedData
-          try {
-            scannedData = JSON.parse(decodedText)
-          } catch (e) {
-            // Fallback: assume the whole string is the raw staffId
-            scannedData = { id: decodedText.trim() }
-          }
-
-          const staffId = scannedData.id || scannedData.staffId || decodedText.trim()
-          
-          if (!staffId) {
-            throw new Error('Invalid QR Code format. No employee ID found.')
-          }
-
-          const d = new Date()
-          const dateStr = d.toISOString().split('T')[0]
-          const timeStr = d.toTimeString().split(' ')[0] // HH:MM:SS
-
-          let res
-          if (scanMode === 'in') {
-            res = await window.api.clockIn({ staffId, dateStr, timeStr })
-          } else {
-            res = await window.api.clockOut({ staffId, dateStr, timeStr })
-          }
-
-          if (res.success) {
-            setScanResult({
-              success: true,
-              message: res.message,
-              staff: res.staff,
-              attendance: res.attendance
-            })
-            
-            // Auto-clear result after 4 seconds
-            setTimeout(() => {
-              setScanResult(null)
-              setIsProcessing(false)
-            }, 4000)
-          } else {
-            throw new Error(res.message || 'Operation failed')
-          }
-        } catch (err) {
-          console.error(err)
-          setErrorMsg(err.message || 'Verification failed')
-          setIsProcessing(false)
-        }
-      },
-      (error) => {
-        // Silent capture errors - library polls constantly
-      }
-    )
-
-    scannerRef.current = qrScanner
-
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch((err) => {
-          console.warn('Failed to clear scanner on unmount:', err)
-        })
+      if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+      if (scannerRef.current && isRunningRef.current) {
+        scannerRef.current.stop().catch(() => {})
       }
     }
-  }, [scanMode, isProcessing])
+  }, [])
+
+  // Speak a message using the Web Speech API
+  const speak = useCallback((text) => {
+    try {
+      window.speechSynthesis.cancel() // stop any current speech
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 0.95
+      utterance.pitch = 1.0
+      utterance.volume = 1.0
+      utterance.lang = 'en-US'
+      window.speechSynthesis.speak(utterance)
+    } catch (e) {
+      console.warn('Speech synthesis not available:', e)
+    }
+  }, [])
+
+  // Handle decoded QR — uses refs so it never goes stale
+  const handleDecode = useCallback(async (decodedText) => {
+    // Prevent processing while cooldown is active (showing result)
+    if (cooldownRef.current) return
+    cooldownRef.current = true
+
+    setErrorMsg('')
+    setScanResult(null)
+    setWarnResult(null)
+
+    try {
+      let scannedData
+      try {
+        scannedData = JSON.parse(decodedText)
+      } catch (e) {
+        // Fallback: assume the whole string is the raw staffId
+        scannedData = { id: decodedText.trim() }
+      }
+
+      const staffId = scannedData.id || scannedData.staffId || decodedText.trim()
+
+      if (!staffId) {
+        throw new Error('Invalid QR Code format. No employee ID found.')
+      }
+
+      const d = new Date()
+      const dateStr = d.toISOString().split('T')[0]
+      const timeStr = d.toTimeString().split(' ')[0] // HH:MM:SS
+
+      let res
+      if (scanModeRef.current === 'in') {
+        res = await window.api.clockIn({ staffId, dateStr, timeStr })
+      } else {
+        res = await window.api.clockOut({ staffId, dateStr, timeStr })
+      }
+
+      if (res.success) {
+        // Determine voice message based on mode and status
+        const status = res.attendance?.status
+        if (scanModeRef.current === 'in') {
+          if (status === 'Late') {
+            speak('You are late')
+          } else {
+            speak('Good day, you are checked in')
+          }
+        } else {
+          speak('Have a great evening')
+        }
+
+        setScanResult({
+          success: true,
+          message: res.message,
+          staff: res.staff,
+          attendance: res.attendance
+        })
+
+        // Auto-clear result after 4 seconds, then allow next scan
+        if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+        resultTimerRef.current = setTimeout(() => {
+          setScanResult(null)
+          cooldownRef.current = false
+        }, 4000)
+      } else if (res.alreadyRecorded) {
+        // Already clocked in/out — show as warning, NOT error
+        speak('Scan already processed')
+
+        setWarnResult({
+          message: res.message,
+          attendance: res.attendance
+        })
+
+        if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+        resultTimerRef.current = setTimeout(() => {
+          setWarnResult(null)
+          cooldownRef.current = false
+        }, 4000)
+      } else {
+        throw new Error(res.message || 'Operation failed')
+      }
+    } catch (err) {
+      console.error(err)
+      setErrorMsg(err.message || 'Verification failed')
+      cooldownRef.current = false
+    }
+  }, [speak])
+
+  // Start scanning — opens the camera
+  const startScanning = useCallback(async () => {
+    // Guard: prevent starting if already running
+    if (isRunningRef.current) return
+
+    const qrReaderEl = document.getElementById('qr-reader')
+    if (!qrReaderEl) return
+
+    setErrorMsg('')
+    setScanResult(null)
+    setWarnResult(null)
+    cooldownRef.current = false
+
+    try {
+      // Get available cameras
+      const cameras = await Html5Qrcode.getCameras()
+      if (!cameras || cameras.length === 0) {
+        throw new Error('No camera found. Please connect a camera and try again.')
+      }
+
+      const scanner = new Html5Qrcode('qr-reader')
+      scannerRef.current = scanner
+
+      await scanner.start(
+        cameras[0].id, // Use the first available camera
+        {
+          fps: 10,
+          qrbox: { width: 220, height: 220 }
+        },
+        handleDecode,
+        () => {
+          // Silent scan errors (no QR in frame) — ignore
+        }
+      )
+
+      isRunningRef.current = true
+      setIsScanning(true)
+    } catch (err) {
+      console.error('Failed to start scanner:', err)
+      setErrorMsg(err.message || 'Could not start camera. Please check permissions and try again.')
+      isRunningRef.current = false
+      setIsScanning(false)
+    }
+  }, [handleDecode])
+
+  // Stop scanning — closes the camera
+  const stopScanning = useCallback(async () => {
+    if (!scannerRef.current || !isRunningRef.current) return
+
+    try {
+      await scannerRef.current.stop()
+    } catch (err) {
+      console.warn('Error stopping scanner:', err)
+    }
+
+    // Clean up refs and state
+    isRunningRef.current = false
+    scannerRef.current = null
+    setIsScanning(false)
+    cooldownRef.current = false
+    if (resultTimerRef.current) {
+      clearTimeout(resultTimerRef.current)
+      resultTimerRef.current = null
+    }
+  }, [])
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Scan Attendance</h1>
-        <p className="text-sm text-slate-500">Scan staff QR ID code to log Clock-In or Clock-Out</p>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left column: Scanner Camera and Mode Selectors */}
         <div className="lg:col-span-5 space-y-6">
@@ -126,9 +217,9 @@ export default function AttendanceScanPage() {
                 onClick={() => {
                   setScanMode('in')
                   setScanResult(null)
+                  setWarnResult(null)
                   setErrorMsg('')
                 }}
-                disabled={isProcessing}
                 className={`flex-1 rounded-xl py-3.5 text-sm font-bold shadow-sm transition-all active:scale-98 ${
                   scanMode === 'in'
                     ? 'bg-emerald-500 text-white shadow-emerald-500/20'
@@ -141,9 +232,9 @@ export default function AttendanceScanPage() {
                 onClick={() => {
                   setScanMode('out')
                   setScanResult(null)
+                  setWarnResult(null)
                   setErrorMsg('')
                 }}
-                disabled={isProcessing}
                 className={`flex-1 rounded-xl py-3.5 text-sm font-bold shadow-sm transition-all active:scale-98 ${
                   scanMode === 'out'
                     ? 'bg-amber-500 text-white shadow-amber-500/20'
@@ -168,17 +259,51 @@ export default function AttendanceScanPage() {
             </p>
           </div>
 
-          {/* Scanner Area */}
+          {/* Start/Stop Button */}
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-md">
+            {!isScanning ? (
+              <button
+                onClick={startScanning}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-500 py-3 text-sm font-bold text-white shadow-md transition hover:bg-sky-600 active:scale-95"
+              >
+                <Camera size={16} />
+                Start Scanning
+              </button>
+            ) : (
+              <button
+                onClick={stopScanning}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500 py-3 text-sm font-bold text-white shadow-md transition hover:bg-red-600 active:scale-95"
+              >
+                <CameraOff size={16} />
+                Stop Scanning
+              </button>
+            )}
+          </div>
+
+          {/* Scanner Area — NEVER put React children inside #qr-reader */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 left-0 w-2 h-full bg-sky-500" />
-            <div id="qr-reader" className="mx-auto overflow-hidden rounded-xl bg-slate-50" />
+            {!isScanning && (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-400 rounded-xl bg-slate-50">
+                <Camera size={32} className="stroke-1 mb-2" />
+                <p className="text-xs font-medium">Click &quot;Start Scanning&quot; to open the camera</p>
+              </div>
+            )}
+            <div
+              id="qr-reader"
+              style={{
+                display: isScanning ? 'block' : 'none',
+                width: '100%',
+                minHeight: isScanning ? '300px' : '0px'
+              }}
+            />
           </div>
         </div>
 
         {/* Right column: Scan results & feedback card */}
         <div className="lg:col-span-7 flex flex-col justify-start">
           {/* Default Waiting Card */}
-          {!scanResult && !errorMsg && (
+          {!scanResult && !warnResult && !errorMsg && (
             <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-slate-400 shadow-sm min-h-[400px]">
               <ScanLine size={64} className="stroke-1 text-slate-300 animate-pulse" />
               <h3 className="mt-4 text-base font-bold text-slate-700">Awaiting QR Scan</h3>
@@ -188,25 +313,61 @@ export default function AttendanceScanPage() {
             </div>
           )}
 
-          {/* Error Feedback Card */}
+          {/* Error Feedback Card (real errors only — not "already scanned") */}
           {errorMsg && (
             <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-red-100 bg-red-50/50 p-12 text-center shadow-lg min-h-[400px] space-y-4">
               <div className="rounded-full bg-red-100 p-4 text-red-600 animate-bounce">
                 <AlertTriangle size={36} />
               </div>
               <h3 className="text-lg font-bold text-red-800">Scan Failed</h3>
-              <p className="text-sm font-medium text-red-650 max-w-sm leading-relaxed text-red-600">
+              <p className="text-sm font-medium max-w-sm leading-relaxed text-red-600">
                 {errorMsg}
               </p>
               <button
                 onClick={() => {
                   setErrorMsg('')
-                  setIsProcessing(false)
+                  cooldownRef.current = false
                 }}
-                className="rounded-xl bg-red-600 px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-red-750"
+                className="rounded-xl bg-red-600 px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-red-700"
               >
-                Reset Scanner
+                Dismiss
               </button>
+            </div>
+          )}
+
+          {/* Already Scanned Warning Card */}
+          {warnResult && (
+            <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-amber-200 bg-amber-50/50 p-12 text-center shadow-lg min-h-[400px] space-y-4 relative overflow-hidden transition-all duration-300">
+              <div className="absolute top-0 right-0 h-20 w-20 translate-x-6 -translate-y-6 rounded-full bg-amber-400/10 blur-xl" />
+              <div className="rounded-full bg-amber-100 p-4 text-amber-600">
+                <Info size={36} />
+              </div>
+              <h3 className="text-lg font-bold text-amber-800">Already Recorded</h3>
+              <p className="text-sm font-medium max-w-sm leading-relaxed text-amber-700">
+                {warnResult.message}
+              </p>
+              {warnResult.attendance && (
+                <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+                  {warnResult.attendance.time_in && (
+                    <div className="rounded-xl border border-amber-100 bg-white p-3 shadow-sm">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase">Time In</p>
+                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">{warnResult.attendance.time_in}</p>
+                    </div>
+                  )}
+                  {warnResult.attendance.time_out && (
+                    <div className="rounded-xl border border-amber-100 bg-white p-3 shadow-sm">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase">Time Out</p>
+                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">{warnResult.attendance.time_out}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Auto-dismiss progress bar */}
+              <div className="w-full max-w-xs">
+                <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-400 animate-[shrink_4s_linear_forwards]" />
+                </div>
+              </div>
             </div>
           )}
 
@@ -270,7 +431,9 @@ export default function AttendanceScanPage() {
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider mt-1 ${
                       ['Present', 'Active'].includes(scanResult.attendance.status)
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                        : 'bg-amber-50 text-amber-700 border border-amber-100'
+                        : scanResult.attendance.status === 'Late'
+                          ? 'bg-red-50 text-red-700 border border-red-100'
+                          : 'bg-amber-50 text-amber-700 border border-amber-100'
                     }`}>
                       {scanResult.attendance.status}
                     </span>
@@ -294,6 +457,15 @@ export default function AttendanceScanPage() {
         @keyframes shrink {
           from { width: 100%; }
           to { width: 0%; }
+        }
+        #qr-reader video {
+          width: 100% !important;
+          min-height: 300px !important;
+          object-fit: cover;
+          border-radius: 12px;
+        }
+        #qr-reader img[alt="scan-region-shade"] {
+          display: none !important;
         }
       `}</style>
     </div>

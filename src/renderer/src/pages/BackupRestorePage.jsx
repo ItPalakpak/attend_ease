@@ -98,11 +98,7 @@ export default function BackupRestorePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Backup & Restore</h1>
-        <p className="text-sm text-slate-500">Back up your local database and staff photos or restore from a previous archive</p>
-      </div>
+
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Backup Card */}
