@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import Pagination from '../components/ui/Pagination'
 import {
   Fuel,
   Settings,
@@ -7,16 +8,14 @@ import {
   Trash2,
   Download,
   Upload,
-  Calendar,
   DollarSign,
   TrendingUp,
   FileSpreadsheet,
   AlertCircle,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   Info
 } from 'lucide-react'
+import { DateRangePicker } from '../shared/DateRangePicker'
 
 // Helper: Calculate week range starting Monday, ending Sunday
 function getWeekRange(dateStr) {
@@ -39,11 +38,18 @@ function getWeekRange(dateStr) {
 // Helper: Get human-readable date format (e.g. "Monday, July 6, 2026")
 function getReadableDate(dateStr) {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
 export default function GasolineSubsidyPage() {
   const [subsidies, setSubsidies] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(15)
   const [staffList, setStaffList] = useState([])
   const [settings, setSettings] = useState({
     gasoline_price: '80',
@@ -51,9 +57,13 @@ export default function GasolineSubsidyPage() {
     gasoline_weekly_limit: '3'
   })
 
-  // Date filters (defaults to current week)
-  const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0])
-  const activeWeek = useMemo(() => getWeekRange(activeDate), [activeDate])
+  // Date range filter (defaults to current week)
+  const [dateFrom, setDateFrom] = useState(
+    () => getWeekRange(new Date().toISOString().split('T')[0]).start
+  )
+  const [dateTo, setDateTo] = useState(
+    () => getWeekRange(new Date().toISOString().split('T')[0]).end
+  )
 
   // Form states
   const [formStaffId, setFormStaffId] = useState('')
@@ -95,13 +105,14 @@ export default function GasolineSubsidyPage() {
 
       const list = await window.api.getStaffList()
       // Filter only active staff members
-      setStaffList(list?.filter(s => s.employment_status === 'Active') || [])
+      setStaffList(list?.filter((s) => s.employment_status === 'Active') || [])
 
       const records = await window.api.getGasolineSubsidies({
-        startDate: activeWeek.start,
-        endDate: activeWeek.end
+        startDate: dateFrom,
+        endDate: dateTo
       })
       setSubsidies(records || [])
+      setCurrentPage(1)
     } catch (err) {
       console.error('Failed to load data:', err)
       showStatus('error', 'Failed to load gasoline subsidy data.')
@@ -110,7 +121,7 @@ export default function GasolineSubsidyPage() {
 
   useEffect(() => {
     loadData()
-  }, [activeWeek])
+  }, [dateFrom, dateTo])
 
   const showStatus = (type, text) => {
     setMessage({ type, text })
@@ -125,7 +136,14 @@ export default function GasolineSubsidyPage() {
       const discount = parseFloat(editDiscount) / 100
       const limit = parseFloat(editLimit)
 
-      if (isNaN(price) || isNaN(discount) || isNaN(limit) || price <= 0 || discount < 0 || limit <= 0) {
+      if (
+        isNaN(price) ||
+        isNaN(discount) ||
+        isNaN(limit) ||
+        price <= 0 ||
+        discount < 0 ||
+        limit <= 0
+      ) {
         showStatus('error', 'Please provide valid positive numbers.')
         return
       }
@@ -175,7 +193,7 @@ export default function GasolineSubsidyPage() {
       })
       const limit = parseFloat(settings.gasoline_weekly_limit)
 
-      if (!formIsPromo && (currentUsage + liters > limit)) {
+      if (!formIsPromo && currentUsage + liters > limit) {
         // Warn/Ask or Cap it. Open custom ConfirmDialog instead of window.confirm
         setLimitWarningMessage(
           `Rider already used ${currentUsage}L this week. Logged transaction will exceed the limit of ${limit}L by ${currentUsage + liters - limit}L. Proceed?`
@@ -319,14 +337,6 @@ export default function GasolineSubsidyPage() {
     }
   }, [formLiters, formStatus, formIsPromo, settings])
 
-  // Week selection modifiers
-  const changeWeek = (direction) => {
-    const date = new Date(activeDate)
-    date.setDate(date.getDate() + direction * 7)
-    setActiveDate(date.toISOString().split('T')[0])
-    setFormDate(date.toISOString().split('T')[0])
-  }
-
   // Total summary aggregates for the active week
   const aggregates = useMemo(() => {
     let totalLiters = 0
@@ -362,15 +372,21 @@ export default function GasolineSubsidyPage() {
     }
   }, [subsidies])
 
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedSubsidies = subsidies.slice(startIndex, endIndex)
+
   return (
-    <div className="h-[calc(100vh-150px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="h-[calc(100vh-186px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Global alert messages (static) */}
       {message && (
         <div
-          className={`shrink-0 flex items-center gap-3 rounded-xl p-4 text-xs font-semibold shadow-md border animate-fade-in ${message.type === 'success'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
-            : 'bg-red-50 text-red-800 border-red-100'
-            }`}
+          className={`shrink-0 flex items-center gap-3 rounded-xl p-4 text-xs font-semibold shadow-md border animate-fade-in ${
+            message.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
+              : 'bg-red-50 text-red-800 border-red-100'
+          }`}
         >
           {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
           {message.text}
@@ -385,12 +401,16 @@ export default function GasolineSubsidyPage() {
         >
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-700">Update Dynamic Parameters</h3>
-            <span className="text-[10px] bg-slate-100 text-slate-500 rounded px-2 py-0.5 font-bold uppercase">GLOBAL</span>
+            <span className="text-[10px] bg-slate-100 text-slate-500 rounded px-2 py-0.5 font-bold uppercase">
+              GLOBAL
+            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="text-xs font-bold text-slate-500">Gasoline Price (PHP / Liter)</label>
+              <label className="text-xs font-bold text-slate-500">
+                Gasoline Price (PHP / Liter)
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -409,7 +429,9 @@ export default function GasolineSubsidyPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500">Weekly Limit (Liters / Rider)</label>
+              <label className="text-xs font-bold text-slate-500">
+                Weekly Limit (Liters / Rider)
+              </label>
               <input
                 type="number"
                 step="0.5"
@@ -438,54 +460,18 @@ export default function GasolineSubsidyPage() {
         </form>
       )}
 
-      {/* Week Navigation Widget (static) */}
+      {/* Date Range & Actions */}
       <div className="shrink-0 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="text-slate-400" size={18} />
-          <h2 className="text-sm font-bold text-slate-700">
-            Active Week: <span className="text-sky-500">{activeWeek.start}</span> to{' '}
-            <span className="text-sky-500">{activeWeek.end}</span>
-          </h2>
-        </div>
+        <DateRangePicker
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onChange={({ dateFrom: from, dateTo: to }) => {
+            setDateFrom(from)
+            setDateTo(to)
+          }}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => changeWeek(-1)}
-              className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 active:scale-95"
-              data-tooltip="Previous Week"
-              data-tooltip-pos="bottom"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={() => setActiveDate(new Date().toISOString().split('T')[0])}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95"
-            >
-              Current Week
-            </button>
-            <button
-              onClick={() => changeWeek(1)}
-              className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 active:scale-95"
-              data-tooltip="Next Week"
-              data-tooltip-pos="bottom"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <input
-            type="date"
-            value={activeDate}
-            onChange={(e) => setActiveDate(e.target.value)}
-            title=""
-            data-tooltip="Select Week Date"
-            data-tooltip-pos="bottom"
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-sky-500"
-          />
-
-          <div className="h-6 w-px bg-slate-200 self-center hidden lg:block mx-1" />
-
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
@@ -515,25 +501,35 @@ export default function GasolineSubsidyPage() {
         {/* Total Liters */}
         <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 h-full w-1.5 bg-sky-500" />
-          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Total Consumed</p>
+          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+            Total Consumed
+          </p>
           <p className="text-xl font-black text-slate-800 font-mono mt-0.5">
-            {aggregates.totalLiters.toFixed(1)} <span className="text-[10px] font-bold text-slate-400">Liters</span>
+            {aggregates.totalLiters.toFixed(1)}{' '}
+            <span className="text-[10px] font-bold text-slate-400">Liters</span>
           </p>
         </div>
 
         {/* Employer Payout */}
         <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 h-full w-1.5 bg-violet-500" />
-          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Employer Payable</p>
+          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+            Employer Payable
+          </p>
           <p className="text-xl font-black text-slate-800 font-mono mt-0.5">
-            ₱{aggregates.totalEmployerPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            ₱
+            {aggregates.totalEmployerPayable.toLocaleString(undefined, {
+              minimumFractionDigits: 2
+            })}
           </p>
         </div>
 
         {/* Rider Contribution */}
         <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 h-full w-1.5 bg-emerald-500" />
-          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Rider Copay (Paid)</p>
+          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+            Rider Copay (Paid)
+          </p>
           <p className="text-xl font-black text-slate-800 font-mono mt-0.5">
             ₱{aggregates.totalRiderPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </p>
@@ -542,7 +538,9 @@ export default function GasolineSubsidyPage() {
         {/* Rider Outstanding Debt */}
         <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 left-0 h-full w-1.5 bg-amber-500" />
-          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Rider Debt (Unpaid)</p>
+          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+            Rider Debt (Unpaid)
+          </p>
           <p className="text-xl font-black text-slate-800 font-mono mt-0.5">
             ₱{aggregates.totalRiderDebt.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </p>
@@ -673,7 +671,7 @@ export default function GasolineSubsidyPage() {
             <div className="shrink-0 py-3 px-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h2 className="text-xs font-bold text-slate-700 flex items-center gap-2">
                 <FileSpreadsheet className="text-slate-400" size={14} />
-                Logs for this Week ({subsidies.length} entries)
+                Filtered Logs ({subsidies.length} entries)
               </h2>
 
               <span className="text-[9px] font-bold text-slate-400 font-mono">
@@ -687,7 +685,9 @@ export default function GasolineSubsidyPage() {
                 <div className="flex flex-col items-center justify-center p-12 text-slate-400 h-full">
                   <Fuel size={48} className="stroke-1 text-slate-300 animate-pulse mb-3" />
                   <p className="text-xs font-bold">No transactions logged for this week.</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Use the left form to log one, or import an Excel spreadsheet.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Use the left form to log one, or import an Excel spreadsheet.
+                  </p>
                 </div>
               ) : (
                 <table className="w-full text-left border-collapse text-xs">
@@ -703,11 +703,13 @@ export default function GasolineSubsidyPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    {subsidies.map((item) => (
+                    {paginatedSubsidies.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/50 transition duration-150">
                         <td className="py-2.5 px-3">
                           <p className="font-bold text-slate-800">{item.rider_name}</p>
-                          <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">ID: {item.formatted_staff_id}</p>
+                          <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
+                            ID: {item.formatted_staff_id}
+                          </p>
                         </td>
                         <td className="py-2.5 px-3 whitespace-nowrap text-slate-500">
                           {item.date}
@@ -715,7 +717,9 @@ export default function GasolineSubsidyPage() {
                         <td className="py-2.5 px-3 text-center font-bold font-mono">
                           {parseFloat(item.liters)}
                           {item.is_promo === 1 && (
-                            <span className="ml-1 text-[8px] bg-violet-50 text-violet-700 border border-violet-100 rounded px-1 py-0.5 font-bold uppercase">PROMO</span>
+                            <span className="ml-1 text-[8px] bg-violet-50 text-violet-700 border border-violet-100 rounded px-1 py-0.5 font-bold uppercase">
+                              PROMO
+                            </span>
                           )}
                         </td>
                         <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-800">
@@ -725,12 +729,13 @@ export default function GasolineSubsidyPage() {
                           <button
                             onClick={() => handleToggleStatus(item)}
                             disabled={item.is_promo === 1}
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider transition ${item.is_promo === 1
-                              ? 'bg-violet-50 text-violet-600 border border-violet-100 cursor-default'
-                              : item.status === 'PAID'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100/50'
-                                : 'bg-red-50 text-red-700 border border-red-100 hover:bg-red-100/50'
-                              }`}
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider transition ${
+                              item.is_promo === 1
+                                ? 'bg-violet-50 text-violet-600 border border-violet-100 cursor-default'
+                                : item.status === 'PAID'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100/50'
+                                  : 'bg-red-50 text-red-700 border border-red-100 hover:bg-red-100/50'
+                            }`}
                           >
                             {item.is_promo === 1 ? 'FREE' : item.status}
                           </button>
@@ -754,6 +759,14 @@ export default function GasolineSubsidyPage() {
                 </table>
               )}
             </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalItems={subsidies.length}
+              itemsPerPage={itemsPerPage}
+              onChangePage={setCurrentPage}
+              onChangeItemsPerPage={setItemsPerPage}
+            />
 
             {/* Table Legend Footer (static) */}
             <div className="shrink-0 py-2.5 px-4 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[9px] text-slate-400">

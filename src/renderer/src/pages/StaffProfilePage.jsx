@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Edit2, Trash2, CreditCard, RefreshCw, Calendar, Phone, Mail, MapPin, User, ShieldAlert, Clock } from 'lucide-react'
+import {
+  ArrowLeft,
+  Edit2,
+  Trash2,
+  CreditCard,
+  RefreshCw,
+  Calendar,
+  Phone,
+  Mail,
+  MapPin,
+  User,
+  ShieldAlert,
+  Clock
+} from 'lucide-react'
 import StatusBadge from '../components/ui/StatusBadge'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 
@@ -98,7 +111,9 @@ export default function StaffProfilePage() {
       <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
         <ShieldAlert size={48} className="text-slate-400" />
         <h2 className="text-xl font-bold text-slate-800">Staff Record Not Found</h2>
-        <p className="text-sm text-slate-500">The requested staff record does not exist or has been deleted.</p>
+        <p className="text-sm text-slate-500">
+          The requested staff record does not exist or has been deleted.
+        </p>
         <button
           onClick={() => navigate('/staff')}
           className="rounded-xl bg-sky-500 px-5 py-2 text-sm font-bold text-black transition hover:bg-sky-600"
@@ -162,7 +177,8 @@ export default function StaffProfilePage() {
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-3xl font-bold text-slate-500">
-                  {staff.first_name?.[0]}{staff.last_name?.[0]}
+                  {staff.first_name?.[0]}
+                  {staff.last_name?.[0]}
                 </div>
               )}
             </div>
@@ -180,18 +196,18 @@ export default function StaffProfilePage() {
             </div>
 
             <div className="border-t border-slate-100 pt-6 space-y-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Attendance QR Code</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Attendance QR Code
+              </p>
               <div className="flex justify-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                 {qrBase64 ? (
-                  <img
-                    src={qrBase64}
-                    alt="QR Code"
-                    className="h-32 w-32"
-                  />
+                  <img src={qrBase64} alt="QR Code" className="h-32 w-32" />
                 ) : (
                   <div className="flex h-32 w-32 flex-col items-center justify-center text-slate-400">
                     <ShieldAlert size={24} />
-                    <span className="text-[10px] mt-1 font-semibold uppercase tracking-wide">No QR Code</span>
+                    <span className="text-[10px] mt-1 font-semibold uppercase tracking-wide">
+                      No QR Code
+                    </span>
                   </div>
                 )}
               </div>
@@ -212,20 +228,27 @@ export default function StaffProfilePage() {
         <div className="space-y-6 lg:col-span-2">
           {/* Staff Information */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-6">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3">Staff Information</h3>
+            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3">
+              Staff Information
+            </h3>
 
             {/* Fields Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               {/* Personal */}
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Personal Info</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Personal Info
+                </h4>
                 <div className="space-y-3">
                   <div className="flex gap-3 text-sm">
                     <User size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Full Name</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Full Name
+                      </p>
                       <p className="font-medium text-slate-800">
-                        {staff.first_name} {staff.middle_name ? `${staff.middle_name} ` : ''}{staff.last_name}
+                        {staff.first_name} {staff.middle_name ? `${staff.middle_name} ` : ''}
+                        {staff.last_name}
                       </p>
                     </div>
                   </div>
@@ -233,9 +256,12 @@ export default function StaffProfilePage() {
                   <div className="flex gap-3 text-sm">
                     <Calendar size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Birth Date & Gender</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Birth Date & Gender
+                      </p>
                       <p className="font-medium text-slate-800">
-                        {staff.birth_date ? new Date(staff.birth_date).toLocaleDateString() : 'N/A'} ({staff.gender || 'N/A'})
+                        {staff.birth_date ? new Date(staff.birth_date).toLocaleDateString() : 'N/A'}{' '}
+                        ({staff.gender || 'N/A'})
                       </p>
                     </div>
                   </div>
@@ -244,12 +270,16 @@ export default function StaffProfilePage() {
 
               {/* Employment */}
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Employment Info</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Employment Info
+                </h4>
                 <div className="space-y-3">
                   <div className="flex gap-3 text-sm">
                     <Clock size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Staff ID & Employee No.</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Staff ID & Employee No.
+                      </p>
                       <p className="font-semibold text-slate-800 font-mono">
                         {staff.formatted_id || staff.staff_id} / {staff.employee_number || 'N/A'}
                       </p>
@@ -259,7 +289,9 @@ export default function StaffProfilePage() {
                   <div className="flex gap-3 text-sm">
                     <Calendar size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Date Hired</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Date Hired
+                      </p>
                       <p className="font-medium text-slate-800">
                         {staff.date_hired ? new Date(staff.date_hired).toLocaleDateString() : 'N/A'}
                       </p>
@@ -270,12 +302,16 @@ export default function StaffProfilePage() {
 
               {/* Contact */}
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Contact details</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Contact details
+                </h4>
                 <div className="space-y-3">
                   <div className="flex gap-3 text-sm">
                     <Phone size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Contact Number</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Contact Number
+                      </p>
                       <p className="font-medium text-slate-800">{staff.contact_number || 'N/A'}</p>
                     </div>
                   </div>
@@ -283,7 +319,9 @@ export default function StaffProfilePage() {
                   <div className="flex gap-3 text-sm">
                     <Mail size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Email Address</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Email Address
+                      </p>
                       <p className="font-medium text-slate-800">{staff.email || 'N/A'}</p>
                     </div>
                   </div>
@@ -291,8 +329,12 @@ export default function StaffProfilePage() {
                   <div className="flex gap-3 text-sm">
                     <MapPin size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Home Address</p>
-                      <p className="font-medium text-slate-800 leading-relaxed">{staff.address || 'N/A'}</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Home Address
+                      </p>
+                      <p className="font-medium text-slate-800 leading-relaxed">
+                        {staff.address || 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -300,21 +342,31 @@ export default function StaffProfilePage() {
 
               {/* Emergency */}
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Emergency Contact</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Emergency Contact
+                </h4>
                 <div className="space-y-3">
                   <div className="flex gap-3 text-sm">
                     <User size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Contact Person</p>
-                      <p className="font-medium text-slate-800">{staff.emergency_contact_name || 'N/A'}</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Contact Person
+                      </p>
+                      <p className="font-medium text-slate-800">
+                        {staff.emergency_contact_name || 'N/A'}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex gap-3 text-sm">
                     <Phone size={16} className="text-slate-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">Emergency Number</p>
-                      <p className="font-medium text-slate-800">{staff.emergency_contact_number || 'N/A'}</p>
+                      <p className="font-semibold text-slate-500 text-xs uppercase tracking-wide">
+                        Emergency Number
+                      </p>
+                      <p className="font-medium text-slate-800">
+                        {staff.emergency_contact_number || 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -324,10 +376,14 @@ export default function StaffProfilePage() {
 
           {/* Role Change History */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4">Position / Role History</h3>
+            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4">
+              Position / Role History
+            </h3>
 
             {!staff.role_history || staff.role_history.length === 0 ? (
-              <p className="text-sm text-slate-400 py-4 text-center">No role updates recorded for this staff member.</p>
+              <p className="text-sm text-slate-400 py-4 text-center">
+                No role updates recorded for this staff member.
+              </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
@@ -345,9 +401,15 @@ export default function StaffProfilePage() {
                         <td className="py-2.5 px-3 font-mono">
                           {new Date(hist.changed_at).toLocaleString()}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-500">{hist.old_role_name || '(Initial)'}</td>
-                        <td className="py-2.5 px-3 font-semibold text-slate-700">{hist.new_role_name}</td>
-                        <td className="py-2.5 px-3 font-medium text-slate-500">{hist.changed_by}</td>
+                        <td className="py-2.5 px-3 text-slate-500">
+                          {hist.old_role_name || '(Initial)'}
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-700">
+                          {hist.new_role_name}
+                        </td>
+                        <td className="py-2.5 px-3 font-medium text-slate-500">
+                          {hist.changed_by}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

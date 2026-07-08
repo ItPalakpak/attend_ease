@@ -9,20 +9,20 @@ export function getStoragePaths() {
   const userDataPath = app.getPath('userData')
   const photosDir = join(userDataPath, 'photos')
   const qrDir = join(userDataPath, 'qrcodes')
-  
+
   if (!existsSync(photosDir)) mkdirSync(photosDir, { recursive: true })
   if (!existsSync(qrDir)) mkdirSync(qrDir, { recursive: true })
-  
+
   return { photosDir, qrDir }
 }
 
 // CHANGED: made generateNextStaffId asynchronous to run database queries
 async function generateNextStaffId(db) {
-  const [rows] = await db.execute("SELECT staff_id FROM staff ORDER BY id DESC LIMIT 1")
+  const [rows] = await db.execute('SELECT staff_id FROM staff ORDER BY id DESC LIMIT 1')
   const lastStaff = rows[0]
-  if (!lastStaff) return "EMP0001"
+  if (!lastStaff) return 'EMP0001'
   const match = lastStaff.staff_id.match(/EMP(\d+)/)
-  if (!match) return "EMP0001"
+  if (!match) return 'EMP0001'
   const nextNum = parseInt(match[1], 10) + 1
   return `EMP${String(nextNum).padStart(4, '0')}`
 }
@@ -55,7 +55,8 @@ export async function getStaffList() {
 // CHANGED: made getStaffById asynchronous and updated SQLite calls to mysql2
 export async function getStaffById(id) {
   const db = getDbConnection()
-  const [staffRows] = await db.execute(`
+  const [staffRows] = await db.execute(
+    `
     SELECT s.*, 
            r.role_name, 
            d.department_name
@@ -63,13 +64,16 @@ export async function getStaffById(id) {
     LEFT JOIN roles r ON s.role_id = r.id
     LEFT JOIN departments d ON s.department_id = d.id
     WHERE s.id = ?
-  `, [id])
-  
+  `,
+    [id]
+  )
+
   const staff = staffRows[0]
   if (!staff) return null
 
   // Fetch role history
-  const [historyRows] = await db.execute(`
+  const [historyRows] = await db.execute(
+    `
     SELECT rh.changed_at, rh.changed_by, 
            r_old.role_name as old_role_name, 
            r_new.role_name as new_role_name
@@ -78,7 +82,9 @@ export async function getStaffById(id) {
     LEFT JOIN roles r_new ON rh.new_role_id = r_new.id
     WHERE rh.staff_id = ?
     ORDER BY rh.changed_at DESC
-  `, [id])
+  `,
+    [id]
+  )
 
   staff.role_history = historyRows
   return staff
@@ -94,7 +100,7 @@ export async function addStaff(staffData) {
     await connection.beginTransaction()
 
     const staffId = await generateNextStaffId(connection)
-    
+
     // Handle photo copy if provided
     let localPhotoPath = null
     if (staffData.photo_path && existsSync(staffData.photo_path)) {
@@ -106,46 +112,55 @@ export async function addStaff(staffData) {
     // Generate QR code
     const localQrPath = await generateAndSaveQRCode(staffId, qrDir)
 
-    const [result] = await connection.execute(`
+    const [result] = await connection.execute(
+      `
       INSERT INTO staff (
         staff_id, employee_number, first_name, middle_name, last_name, 
         gender, birth_date, role_id, department_id, contact_number, 
         email, address, date_hired, employment_status, photo_path, 
         qr_code_path, emergency_contact_name, emergency_contact_number
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      staffId,
-      staffData.employee_number || null,
-      staffData.first_name,
-      staffData.middle_name || null,
-      staffData.last_name,
-      staffData.gender || 'Male',
-      staffData.birth_date || null,
-      staffData.role_id || null,
-      staffData.department_id || null,
-      staffData.contact_number || null,
-      staffData.email || null,
-      staffData.address || null,
-      staffData.date_hired || null,
-      staffData.employment_status || 'Active',
-      localPhotoPath,
-      localQrPath,
-      staffData.emergency_contact_name || null,
-      staffData.emergency_contact_number || null
-    ])
+    `,
+      [
+        staffId,
+        staffData.employee_number || null,
+        staffData.first_name,
+        staffData.middle_name || null,
+        staffData.last_name,
+        staffData.gender || 'Male',
+        staffData.birth_date || null,
+        staffData.role_id || null,
+        staffData.department_id || null,
+        staffData.contact_number || null,
+        staffData.email || null,
+        staffData.address || null,
+        staffData.date_hired || null,
+        staffData.employment_status || 'Active',
+        localPhotoPath,
+        localQrPath,
+        staffData.emergency_contact_name || null,
+        staffData.emergency_contact_number || null
+      ]
+    )
 
     const newStaffId = result.insertId
 
     // Log to history if role is assigned
     if (staffData.role_id) {
-      await connection.execute(`
+      await connection.execute(
+        `
         INSERT INTO role_history (staff_id, old_role_id, new_role_id, changed_by)
         VALUES (?, NULL, ?, ?)
-      `, [newStaffId, staffData.role_id, 'Admin'])
+      `,
+        [newStaffId, staffData.role_id, 'Admin']
+      )
     }
 
-    await logAudit('STAFF_ADDED', 'staff', newStaffId, { staffId, name: `${staffData.first_name} ${staffData.last_name}` })
-    
+    await logAudit('STAFF_ADDED', 'staff', newStaffId, {
+      staffId,
+      name: `${staffData.first_name} ${staffData.last_name}`
+    })
+
     await connection.commit()
     return { success: true, id: newStaffId, staffId }
   } catch (error) {
@@ -154,7 +169,10 @@ export async function addStaff(staffData) {
     if (error.code === 'ER_DUP_ENTRY' && error.message.includes('employee_number')) {
       return { success: false, message: 'Employee number already exists' }
     }
-    return { success: false, message: error.message || 'An error occurred while adding the staff member' }
+    return {
+      success: false,
+      message: error.message || 'An error occurred while adding the staff member'
+    }
   } finally {
     connection.release()
   }
@@ -180,20 +198,32 @@ export async function updateStaff(id, staffData) {
     const staffId = current.staff_id
 
     // Check if role changed
-    const roleChanged = staffData.role_id !== undefined && Number(staffData.role_id) !== current.role_id
+    const roleChanged =
+      staffData.role_id !== undefined && Number(staffData.role_id) !== current.role_id
     if (roleChanged) {
-      await connection.execute(`
+      await connection.execute(
+        `
         INSERT INTO role_history (staff_id, old_role_id, new_role_id, changed_by)
         VALUES (?, ?, ?, ?)
-      `, [id, current.role_id, staffData.role_id || null, 'Admin'])
+      `,
+        [id, current.role_id, staffData.role_id || null, 'Admin']
+      )
     }
 
     // Handle photo copy if changed
     let localPhotoPath = current.photo_path
-    if (staffData.photo_path && staffData.photo_path !== current.photo_path && existsSync(staffData.photo_path)) {
+    if (
+      staffData.photo_path &&
+      staffData.photo_path !== current.photo_path &&
+      existsSync(staffData.photo_path)
+    ) {
       // Delete old photo if it exists
       if (current.photo_path && existsSync(current.photo_path)) {
-        try { unlinkSync(current.photo_path) } catch (e) { console.error(e) }
+        try {
+          unlinkSync(current.photo_path)
+        } catch (e) {
+          console.error(e)
+        }
       }
       const fileExt = extname(staffData.photo_path)
       localPhotoPath = join(photosDir, `${staffId}${fileExt}`)
@@ -206,7 +236,8 @@ export async function updateStaff(id, staffData) {
       localQrPath = await generateAndSaveQRCode(staffId, qrDir)
     }
 
-    await connection.execute(`
+    await connection.execute(
+      `
       UPDATE staff 
       SET employee_number = ?, first_name = ?, middle_name = ?, last_name = ?, 
           gender = ?, birth_date = ?, role_id = ?, department_id = ?, 
@@ -214,29 +245,34 @@ export async function updateStaff(id, staffData) {
           employment_status = ?, photo_path = ?, qr_code_path = ?, 
           emergency_contact_name = ?, emergency_contact_number = ?
       WHERE id = ?
-    `, [
-      staffData.employee_number || null,
-      staffData.first_name,
-      staffData.middle_name || null,
-      staffData.last_name,
-      staffData.gender || 'Male',
-      staffData.birth_date || null,
-      staffData.role_id || null,
-      staffData.department_id || null,
-      staffData.contact_number || null,
-      staffData.email || null,
-      staffData.address || null,
-      staffData.date_hired || null,
-      staffData.employment_status || 'Active',
-      localPhotoPath,
-      localQrPath,
-      staffData.emergency_contact_name || null,
-      staffData.emergency_contact_number || null,
-      id
-    ])
+    `,
+      [
+        staffData.employee_number || null,
+        staffData.first_name,
+        staffData.middle_name || null,
+        staffData.last_name,
+        staffData.gender || 'Male',
+        staffData.birth_date || null,
+        staffData.role_id || null,
+        staffData.department_id || null,
+        staffData.contact_number || null,
+        staffData.email || null,
+        staffData.address || null,
+        staffData.date_hired || null,
+        staffData.employment_status || 'Active',
+        localPhotoPath,
+        localQrPath,
+        staffData.emergency_contact_name || null,
+        staffData.emergency_contact_number || null,
+        id
+      ]
+    )
 
-    await logAudit('STAFF_EDITED', 'staff', id, { staffId, name: `${staffData.first_name} ${staffData.last_name}` })
-    
+    await logAudit('STAFF_EDITED', 'staff', id, {
+      staffId,
+      name: `${staffData.first_name} ${staffData.last_name}`
+    })
+
     await connection.commit()
     return { success: true }
   } catch (error) {
@@ -245,7 +281,10 @@ export async function updateStaff(id, staffData) {
     if (error.code === 'ER_DUP_ENTRY' && error.message.includes('employee_number')) {
       return { success: false, message: 'Employee number already exists' }
     }
-    return { success: false, message: error.message || 'An error occurred while updating the staff member' }
+    return {
+      success: false,
+      message: error.message || 'An error occurred while updating the staff member'
+    }
   } finally {
     connection.release()
   }
@@ -261,15 +300,26 @@ export async function deleteStaff(id) {
 
     // Delete local files
     if (staff.photo_path && existsSync(staff.photo_path)) {
-      try { unlinkSync(staff.photo_path) } catch (e) { console.error('Error deleting photo:', e) }
+      try {
+        unlinkSync(staff.photo_path)
+      } catch (e) {
+        console.error('Error deleting photo:', e)
+      }
     }
     if (staff.qr_code_path && existsSync(staff.qr_code_path)) {
-      try { unlinkSync(staff.qr_code_path) } catch (e) { console.error('Error deleting QR:', e) }
+      try {
+        unlinkSync(staff.qr_code_path)
+      } catch (e) {
+        console.error('Error deleting QR:', e)
+      }
     }
 
     await db.execute('DELETE FROM staff WHERE id = ?', [id])
 
-    await logAudit('STAFF_DELETED', 'staff', id, { staffId: staff.staff_id, name: `${staff.first_name} ${staff.last_name}` })
+    await logAudit('STAFF_DELETED', 'staff', id, {
+      staffId: staff.staff_id,
+      name: `${staff.first_name} ${staff.last_name}`
+    })
     return { success: true }
   } catch (error) {
     console.error('Delete staff error:', error)
@@ -281,7 +331,9 @@ export async function deleteStaff(id) {
 export async function regenerateQRCode(id) {
   try {
     const db = getDbConnection()
-    const [staffRows] = await db.execute('SELECT staff_id, qr_code_path FROM staff WHERE id = ?', [id])
+    const [staffRows] = await db.execute('SELECT staff_id, qr_code_path FROM staff WHERE id = ?', [
+      id
+    ])
     const staff = staffRows[0]
     if (!staff) return { success: false, message: 'Staff member not found' }
 
@@ -289,13 +341,17 @@ export async function regenerateQRCode(id) {
 
     // Delete old QR code if exists
     if (staff.qr_code_path && existsSync(staff.qr_code_path)) {
-      try { unlinkSync(staff.qr_code_path) } catch (e) { console.error(e) }
+      try {
+        unlinkSync(staff.qr_code_path)
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     const newQrPath = await generateAndSaveQRCode(staff.staff_id, qrDir)
 
     await db.execute('UPDATE staff SET qr_code_path = ? WHERE id = ?', [newQrPath, id])
-    
+
     await logAudit('QR_REGENERATED', 'staff', id, { staffId: staff.staff_id })
     return { success: true, qr_code_path: newQrPath }
   } catch (error) {

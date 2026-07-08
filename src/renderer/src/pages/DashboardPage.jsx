@@ -30,12 +30,13 @@ export default function DashboardPage() {
       const todayStr = getTodayStr()
       const statsRes = await window.api.getDashboardStats(todayStr)
       const attendanceRes = await window.api.getDailyAttendance(todayStr)
-      
+
       setStats({
         totalStaff: statsRes.totalStaff || 0,
         presentToday: statsRes.presentToday || 0,
         lateToday: statsRes.lateToday || 0,
-        absentToday: statsRes.absentToday !== undefined ? statsRes.absentToday : (statsRes.absToday || 0),
+        absentToday:
+          statsRes.absentToday !== undefined ? statsRes.absentToday : statsRes.absToday || 0,
         totalRoles: statsRes.totalRoles || 0,
         totalDepts: statsRes.totalDepts || 0
       })
@@ -116,8 +117,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {statCards.map((card, idx) => (
@@ -126,14 +125,20 @@ export default function DashboardPage() {
             className={`relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-lg ${card.shadow} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
           >
             {/* Background Accent */}
-            <div className={`absolute top-0 right-0 h-16 w-16 translate-x-4 -translate-y-4 rounded-full bg-gradient-to-br ${card.gradient} opacity-10`} />
+            <div
+              className={`absolute top-0 right-0 h-16 w-16 translate-x-4 -translate-y-4 rounded-full bg-gradient-to-br ${card.gradient} opacity-10`}
+            />
 
             <div className="flex flex-col gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-md`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-md`}
+              >
                 <card.icon size={20} />
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{card.label}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                  {card.label}
+                </p>
                 <p className="mt-1 text-2xl font-bold text-slate-800">{card.value}</p>
               </div>
             </div>
@@ -146,7 +151,9 @@ export default function DashboardPage() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-800">Today's Attendance</h2>
-            <p className="text-xs text-slate-500">List of staff clock-in/out logs for today ({getTodayStr()})</p>
+            <p className="text-xs text-slate-500">
+              List of staff clock-in/out logs for today ({getTodayStr()})
+            </p>
           </div>
         </div>
 
@@ -188,8 +195,11 @@ export default function DashboardPage() {
                           }}
                         />
                       ) : null}
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-650 ${log.photo_path ? 'hidden' : ''}`}>
-                        {log.first_name?.[0]}{log.last_name?.[0]}
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-650 ${log.photo_path ? 'hidden' : ''}`}
+                      >
+                        {log.first_name?.[0]}
+                        {log.last_name?.[0]}
                       </div>
                     </td>
                     <td className="py-3 px-4 font-mono text-xs font-semibold text-slate-600">
@@ -199,8 +209,12 @@ export default function DashboardPage() {
                       {log.first_name} {log.last_name}
                     </td>
                     <td className="py-3 px-4 text-slate-500">{log.department_name}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-650">{log.time_in || '--:--'}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-650">{log.time_out || '--:--'}</td>
+                    <td className="py-3 px-4 font-semibold text-slate-650">
+                      {log.time_in || '--:--'}
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-slate-650">
+                      {log.time_out || '--:--'}
+                    </td>
                     <td className="py-3 px-4">
                       <StatusBadge status={log.status} />
                     </td>

@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { CalendarDays, Search, CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight, FileBarChart } from 'lucide-react'
+import {
+  Search,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+  FileBarChart
+} from 'lucide-react'
 import StatusBadge from '../components/ui/StatusBadge'
+import { DateRangePicker } from '../shared/DateRangePicker'
+import Pagination from '../components/ui/Pagination'
 
 export default function AttendanceHistoryPage() {
   const [startDate, setStartDate] = useState(() => {
@@ -23,7 +33,7 @@ export default function AttendanceHistoryPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const recordsPerPage = 15
+  const [recordsPerPage, setRecordsPerPage] = useState(15)
 
   const fetchHistory = async () => {
     setIsLoading(true)
@@ -46,7 +56,7 @@ export default function AttendanceHistoryPage() {
   useEffect(() => {
     const q = searchQuery.toLowerCase().trim()
     let filtered = records
-    
+
     if (q) {
       filtered = records.filter(
         (r) =>
@@ -71,26 +81,8 @@ export default function AttendanceHistoryPage() {
     })
 
     setSummaryStats({ present, late, absent })
+    setCurrentPage(1)
   }, [records, searchQuery])
-
-  // Presets
-  const applyPreset = (preset) => {
-    const today = new Date()
-    let start = new Date()
-
-    if (preset === 'today') {
-      start = today
-    } else if (preset === 'week') {
-      start.setDate(today.getDate() - today.getDay()) // Start of current week
-    } else if (preset === 'month') {
-      start = new Date(today.getFullYear(), today.getMonth(), 1) // First day of current month
-    } else if (preset === 'last30') {
-      start.setDate(today.getDate() - 30)
-    }
-
-    setStartDate(start.toISOString().split('T')[0])
-    setEndDate(today.toISOString().split('T')[0])
-  }
 
   // Pagination Math
   const indexOfLastRecord = currentPage * recordsPerPage
@@ -99,58 +91,17 @@ export default function AttendanceHistoryPage() {
   const totalPages = Math.ceil(filteredRecords.length / recordsPerPage)
 
   return (
-    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
-      {/* Date Filters & Presets */}
-      <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm space-y-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="space-y-1">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-2 md:pt-0">
-            <button
-              onClick={() => applyPreset('today')}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-650 hover:bg-slate-50 transition"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => applyPreset('week')}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-650 hover:bg-slate-50 transition"
-            >
-              This Week
-            </button>
-            <button
-              onClick={() => applyPreset('month')}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-650 hover:bg-slate-50 transition"
-            >
-              This Month
-            </button>
-            <button
-              onClick={() => applyPreset('last30')}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-650 hover:bg-slate-50 transition"
-            >
-              Last 30 Days
-            </button>
-          </div>
-        </div>
+    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+      {/* Date Range Filter */}
+      <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+        <DateRangePicker
+          dateFrom={startDate}
+          dateTo={endDate}
+          onChange={({ dateFrom, dateTo }) => {
+            setStartDate(dateFrom)
+            setEndDate(dateTo)
+          }}
+        />
       </div>
 
       {/* Stats Cards */}
@@ -160,7 +111,9 @@ export default function AttendanceHistoryPage() {
             <CheckCircle2 size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Present</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Total Present
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summaryStats.present}</p>
           </div>
         </div>
@@ -170,7 +123,9 @@ export default function AttendanceHistoryPage() {
             <Clock size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Late</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Total Late
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summaryStats.late}</p>
           </div>
         </div>
@@ -180,7 +135,9 @@ export default function AttendanceHistoryPage() {
             <XCircle size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Absent</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Total Absent
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summaryStats.absent}</p>
           </div>
         </div>
@@ -231,7 +188,14 @@ export default function AttendanceHistoryPage() {
                   {currentRecords.map((r, index) => (
                     <tr key={index} className="transition hover:bg-slate-50/50">
                       <td className="py-2 px-3 font-semibold text-slate-700">
-                        {r.date ? new Date(r.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                        {r.date
+                          ? new Date(r.date).toLocaleDateString(undefined, {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })
+                          : 'N/A'}
                       </td>
                       <td className="py-2 px-3 font-mono text-[10px] font-semibold text-slate-500">
                         {r.formatted_id || r.staff_id}
@@ -240,8 +204,12 @@ export default function AttendanceHistoryPage() {
                         {r.first_name} {r.last_name}
                       </td>
                       <td className="py-2 px-3 text-slate-500">{r.role_name || 'Staff'}</td>
-                      <td className="py-2 px-3 font-mono text-[10px] font-bold text-slate-650">{r.time_in || '--:--'}</td>
-                      <td className="py-2 px-3 font-mono text-[10px] font-bold text-slate-650">{r.time_out || '--:--'}</td>
+                      <td className="py-2 px-3 font-mono text-[10px] font-bold text-slate-650">
+                        {r.time_in || '--:--'}
+                      </td>
+                      <td className="py-2 px-3 font-mono text-[10px] font-bold text-slate-650">
+                        {r.time_out || '--:--'}
+                      </td>
                       <td className="py-2 px-3">
                         <StatusBadge status={r.status} />
                       </td>
@@ -252,32 +220,13 @@ export default function AttendanceHistoryPage() {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="shrink-0 flex items-center justify-between border-t border-slate-100 pt-4 text-[10px] font-semibold text-slate-500 bg-white">
-                <span>
-                  Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, filteredRecords.length)} of{' '}
-                  {filteredRecords.length} records
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 hover:bg-slate-50 transition disabled:opacity-50"
-                  >
-                    <ChevronLeft size={12} />
-                    <span>Previous</span>
-                  </button>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 hover:bg-slate-50 transition disabled:opacity-50"
-                  >
-                    <span>Next</span>
-                    <ChevronRight size={12} />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredRecords.length}
+              itemsPerPage={recordsPerPage}
+              onChangePage={setCurrentPage}
+              onChangeItemsPerPage={setRecordsPerPage}
+            />
           </>
         )}
       </div>

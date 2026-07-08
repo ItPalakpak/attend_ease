@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react'
-import { DatabaseZap, Upload, Search, Trash2, CheckCircle2, AlertCircle, FileText, ArrowRight, Loader2 } from 'lucide-react'
+import {
+  DatabaseZap,
+  Upload,
+  Search,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  ArrowRight,
+  Loader2
+} from 'lucide-react'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import Pagination from '../components/ui/Pagination'
 
 export default function DataImportPage() {
   const [datasets, setDatasets] = useState([])
   const [filePath, setFilePath] = useState('')
   const [description, setDescription] = useState('')
-  
+
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState({ type: '', message: '' })
   const [isLoading, setIsLoading] = useState(true)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // Confirm delete dialog state
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
@@ -19,12 +33,18 @@ export default function DataImportPage() {
     try {
       const res = await window.api.getDatasets()
       setDatasets(res || [])
+      setCurrentPage(1)
     } catch (err) {
       console.error('Failed to fetch datasets:', err)
     } finally {
       setIsLoading(false)
     }
   }
+
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedDatasets = datasets.slice(startIndex, endIndex)
 
   useEffect(() => {
     fetchDatasets()
@@ -71,7 +91,7 @@ export default function DataImportPage() {
         setFilePath('')
         setDescription('')
         fetchDatasets()
-        
+
         // Auto-clear success message after 4s
         setTimeout(() => setUploadStatus({ type: '', message: '' }), 4000)
       } else {
@@ -109,28 +129,39 @@ export default function DataImportPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       <div className="flex-1 min-h-0 grid grid-cols-1 gap-6 lg:grid-cols-12 overflow-hidden pb-1 pr-1">
         {/* Left side upload form */}
         <div className="lg:col-span-5 flex flex-col h-full max-h-full pb-1 pr-1">
-          <form onSubmit={handleImportSubmit} className="flex-1 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-5 shadow-lg space-y-4 relative pr-1 pb-1">
+          <form
+            onSubmit={handleImportSubmit}
+            className="flex-1 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-5 shadow-lg space-y-4 relative pr-1 pb-1"
+          >
             <div className="absolute top-0 left-0 w-1.5 h-full bg-sky-500" />
             <h2 className="text-sm font-bold text-slate-800">Import New Dataset</h2>
 
             {uploadStatus.message && (
-              <div className={`flex items-start gap-2 rounded-xl border p-3 text-xs leading-relaxed ${
-                uploadStatus.type === 'success'
-                  ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
-                  : 'border-red-500/20 bg-red-50/50 text-red-650'
-              }`}>
-                {uploadStatus.type === 'success' ? <CheckCircle2 size={14} className="shrink-0 mt-0.5" /> : <AlertCircle size={14} className="shrink-0 mt-0.5" />}
+              <div
+                className={`flex items-start gap-2 rounded-xl border p-3 text-xs leading-relaxed ${
+                  uploadStatus.type === 'success'
+                    ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
+                    : 'border-red-500/20 bg-red-50/50 text-red-650'
+                }`}
+              >
+                {uploadStatus.type === 'success' ? (
+                  <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                )}
                 <span>{uploadStatus.message}</span>
               </div>
             )}
 
             {/* Browser area */}
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">File Path</label>
+              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">
+                File Path
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -152,7 +183,9 @@ export default function DataImportPage() {
 
             {/* Description */}
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">Description (Optional)</label>
+              <label className="text-[10px] font-semibold text-slate-440 uppercase tracking-wide">
+                Description (Optional)
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -198,55 +231,76 @@ export default function DataImportPage() {
                 <p className="mt-2 text-sm">No datasets have been imported yet.</p>
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
-                      <th className="py-2.5 px-3 bg-white">File Name</th>
-                      <th className="py-2.5 px-3 bg-white">Description</th>
-                      <th className="py-2.5 px-3 bg-white">Rows</th>
-                      <th className="py-2.5 px-3 bg-white">Import Date</th>
-                      <th className="py-2.5 px-3 bg-white text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 text-slate-700 font-medium">
-                    {datasets.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-50/50 transition-all">
-                        <td className="py-2 px-3">
-                          <div className="flex items-center gap-2">
-                            <FileText size={14} className="text-slate-400 shrink-0" />
-                            <div>
-                              <p className="font-semibold text-slate-800 truncate max-w-[140px]" title={d.file_name}>
-                                {d.file_name}
-                              </p>
-                              <p className="text-[9px] text-slate-400 truncate max-w-[140px]" title={d.original_file_path}>
-                                Path: {d.original_file_path}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-2 px-3 text-slate-550 max-w-[120px] truncate" title={d.description}>
-                          {d.description || 'N/A'}
-                        </td>
-                        <td className="py-2 px-3 font-mono font-bold text-slate-650">{d.row_count}</td>
-                        <td className="py-2 px-3 text-slate-450 font-mono text-[10px]">
-                          {d.imported_at ? new Date(d.imported_at).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="py-2 px-3 text-right">
-                          <button
-                            onClick={() => handleOpenDeleteConfirm(d)}
-                            data-tooltip="Delete Dataset"
-                            data-tooltip-pos="left"
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-650 transition"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
+              <>
+                <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+                  <table className="w-full border-collapse text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                        <th className="py-2.5 px-3 bg-white">File Name</th>
+                        <th className="py-2.5 px-3 bg-white">Description</th>
+                        <th className="py-2.5 px-3 bg-white">Rows</th>
+                        <th className="py-2.5 px-3 bg-white">Import Date</th>
+                        <th className="py-2.5 px-3 bg-white text-right">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 text-slate-700 font-medium">
+                      {paginatedDatasets.map((d) => (
+                        <tr key={d.id} className="hover:bg-slate-50/50 transition-all">
+                          <td className="py-2 px-3">
+                            <div className="flex items-center gap-2">
+                              <FileText size={14} className="text-slate-400 shrink-0" />
+                              <div>
+                                <p
+                                  className="font-semibold text-slate-800 truncate max-w-[140px]"
+                                  title={d.file_name}
+                                >
+                                  {d.file_name}
+                                </p>
+                                <p
+                                  className="text-[9px] text-slate-400 truncate max-w-[140px]"
+                                  title={d.original_file_path}
+                                >
+                                  Path: {d.original_file_path}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td
+                            className="py-2 px-3 text-slate-550 max-w-[120px] truncate"
+                            title={d.description}
+                          >
+                            {d.description || 'N/A'}
+                          </td>
+                          <td className="py-2 px-3 font-mono font-bold text-slate-650">
+                            {d.row_count}
+                          </td>
+                          <td className="py-2 px-3 text-slate-450 font-mono text-[10px]">
+                            {d.imported_at ? new Date(d.imported_at).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="py-2 px-3 text-right">
+                            <button
+                              onClick={() => handleOpenDeleteConfirm(d)}
+                              data-tooltip="Delete Dataset"
+                              data-tooltip-pos="left"
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-650 transition"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={datasets.length}
+                  itemsPerPage={itemsPerPage}
+                  onChangePage={setCurrentPage}
+                  onChangeItemsPerPage={setItemsPerPage}
+                />
+              </>
             )}
           </div>
         </div>

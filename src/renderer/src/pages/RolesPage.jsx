@@ -3,12 +3,16 @@ import { Plus, Search, Edit2, Trash2, ShieldAlert } from 'lucide-react'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import StatusBadge from '../components/ui/StatusBadge'
+import Pagination from '../components/ui/Pagination'
 
 export default function RolesPage() {
   const [roles, setRoles] = useState([])
   const [filteredRoles, setFilteredRoles] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -46,13 +50,17 @@ export default function RolesPage() {
     } else {
       setFilteredRoles(
         roles.filter(
-          (r) =>
-            r.role_name.toLowerCase().includes(q) ||
-            r.description.toLowerCase().includes(q)
+          (r) => r.role_name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)
         )
       )
     }
+    setCurrentPage(1)
   }, [roles, searchQuery])
+
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedRoles = filteredRoles.slice(startIndex, endIndex)
 
   const handleOpenAddModal = () => {
     setModalMode('add')
@@ -107,7 +115,7 @@ export default function RolesPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Controls */}
       <div className="shrink-0 flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -145,49 +153,61 @@ export default function RolesPage() {
             <p className="mt-2 text-sm">No roles found.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
-                  <th className="py-2.5 px-3 bg-white">Role Name</th>
-                  <th className="py-2.5 px-3 bg-white">Description</th>
-                  <th className="py-2.5 px-3 bg-white">Status</th>
-                  <th className="py-2.5 px-3 bg-white">Created At</th>
-                  <th className="py-2.5 px-3 bg-white text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-slate-700">
-                {filteredRoles.map((role) => (
-                  <tr key={role.id} className="transition-all hover:bg-slate-50/50">
-                    <td className="py-2 px-3 font-semibold text-slate-800">{role.role_name}</td>
-                    <td className="py-2 px-3 text-slate-500 max-w-xs truncate">{role.description || 'No description'}</td>
-                    <td className="py-2 px-3">
-                      <StatusBadge status={role.status} />
-                    </td>
-                    <td className="py-2 px-3 text-slate-450 font-mono text-[10px]">
-                      {role.created_at ? new Date(role.created_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="py-2 px-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => handleOpenEditModal(role)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleOpenDeleteConfirm(role)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                    <th className="py-2.5 px-3 bg-white">Role Name</th>
+                    <th className="py-2.5 px-3 bg-white">Description</th>
+                    <th className="py-2.5 px-3 bg-white">Status</th>
+                    <th className="py-2.5 px-3 bg-white">Created At</th>
+                    <th className="py-2.5 px-3 bg-white text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-slate-700">
+                  {paginatedRoles.map((role) => (
+                    <tr key={role.id} className="transition-all hover:bg-slate-50/50">
+                      <td className="py-2 px-3 font-semibold text-slate-800">{role.role_name}</td>
+                      <td className="py-2 px-3 text-slate-500 max-w-xs truncate">
+                        {role.description || 'No description'}
+                      </td>
+                      <td className="py-2 px-3">
+                        <StatusBadge status={role.status} />
+                      </td>
+                      <td className="py-2 px-3 text-slate-450 font-mono text-[10px]">
+                        {role.created_at ? new Date(role.created_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => handleOpenEditModal(role)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleOpenDeleteConfirm(role)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredRoles.length}
+              itemsPerPage={itemsPerPage}
+              onChangePage={setCurrentPage}
+              onChangeItemsPerPage={setItemsPerPage}
+            />
+          </>
         )}
       </div>
 

@@ -11,7 +11,9 @@ export async function getRoles() {
 // CHANGED: made getActiveRoles asynchronous and updated SQLite calls to mysql2 execute
 export async function getActiveRoles() {
   const db = getDbConnection()
-  const [rows] = await db.execute("SELECT * FROM roles WHERE status = 'Active' ORDER BY role_name ASC")
+  const [rows] = await db.execute(
+    "SELECT * FROM roles WHERE status = 'Active' ORDER BY role_name ASC"
+  )
   return rows
 }
 
@@ -19,11 +21,14 @@ export async function getActiveRoles() {
 export async function addRole(role) {
   try {
     const db = getDbConnection()
-    const [result] = await db.execute(`
+    const [result] = await db.execute(
+      `
       INSERT INTO roles (role_name, description, status)
       VALUES (?, ?, ?)
-    `, [role.role_name, role.description, role.status || 'Active'])
-    
+    `,
+      [role.role_name, role.description, role.status || 'Active']
+    )
+
     const newId = result.insertId
     await logAudit('ROLE_ADDED', 'roles', newId, role)
     return { success: true, id: newId }
@@ -40,12 +45,15 @@ export async function addRole(role) {
 export async function updateRole(id, role) {
   try {
     const db = getDbConnection()
-    await db.execute(`
+    await db.execute(
+      `
       UPDATE roles
       SET role_name = ?, description = ?, status = ?
       WHERE id = ?
-    `, [role.role_name, role.description, role.status, id])
-    
+    `,
+      [role.role_name, role.description, role.status, id]
+    )
+
     await logAudit('ROLE_EDITED', 'roles', id, role)
     return { success: true }
   } catch (error) {
@@ -61,23 +69,27 @@ export async function updateRole(id, role) {
 export async function deleteRole(id) {
   try {
     const db = getDbConnection()
-    
+
     // Check if role is used by staff
-    const [staffCountRows] = await db.execute('SELECT COUNT(*) as count FROM staff WHERE role_id = ?', [id])
+    const [staffCountRows] = await db.execute(
+      'SELECT COUNT(*) as count FROM staff WHERE role_id = ?',
+      [id]
+    )
     const staffCount = staffCountRows[0].count
     if (staffCount > 0) {
-      return { 
-        success: false, 
-        message: 'Role is currently assigned to staff and cannot be deleted. Try deactivating it instead.' 
+      return {
+        success: false,
+        message:
+          'Role is currently assigned to staff and cannot be deleted. Try deactivating it instead.'
       }
     }
-    
+
     const [roleRows] = await db.execute('SELECT * FROM roles WHERE id = ?', [id])
     const role = roleRows[0]
     if (!role) {
       return { success: false, message: 'Role not found' }
     }
-    
+
     await db.execute('DELETE FROM roles WHERE id = ?', [id])
     await logAudit('ROLE_DELETED', 'roles', id, role)
     return { success: true }

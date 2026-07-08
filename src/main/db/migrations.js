@@ -174,7 +174,10 @@ export async function runMigrations() {
     { key: 'gasoline_weekly_limit', value: '3' }
   ]
   for (const setting of defaultSettings) {
-    await db.query('INSERT IGNORE INTO settings (\`key\`, \`value\`) VALUES (?, ?)', [setting.key, setting.value])
+    await db.query('INSERT IGNORE INTO settings (\`key\`, \`value\`) VALUES (?, ?)', [
+      setting.key,
+      setting.value
+    ])
   }
   console.log('Seeded default application settings')
 }

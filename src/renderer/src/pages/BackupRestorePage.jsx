@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
-import { HardDriveDownload, HardDriveUpload, ShieldAlert, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  HardDriveDownload,
+  HardDriveUpload,
+  ShieldAlert,
+  CheckCircle2,
+  AlertCircle,
+  Loader2
+} from 'lucide-react'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 
 export default function BackupRestorePage() {
@@ -57,7 +64,8 @@ export default function BackupRestorePage() {
         filters: [{ name: 'Zip Archive', extensions: ['zip'] }]
       })
 
-      const targetPath = typeof fileDialogRes === 'object' ? fileDialogRes.filePaths?.[0] : fileDialogRes?.[0]
+      const targetPath =
+        typeof fileDialogRes === 'object' ? fileDialogRes.filePaths?.[0] : fileDialogRes?.[0]
       const isCanceled = typeof fileDialogRes === 'object' ? fileDialogRes.canceled : !targetPath
 
       if (isCanceled || !targetPath) return
@@ -79,7 +87,8 @@ export default function BackupRestorePage() {
       if (res.success) {
         setRestoreStatus({
           type: 'success',
-          message: 'System database and staff photos restored successfully. Please restart the application if any inconsistencies appear.'
+          message:
+            'System database and staff photos restored successfully. Please restart the application if any inconsistencies appear.'
         })
       } else {
         setRestoreStatus({
@@ -98,8 +107,6 @@ export default function BackupRestorePage() {
 
   return (
     <div className="space-y-6">
-
-
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Backup Card */}
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg flex flex-col justify-between space-y-6 relative overflow-hidden">
@@ -112,17 +119,25 @@ export default function BackupRestorePage() {
             <div>
               <h2 className="text-lg font-bold text-slate-800">Create System Backup</h2>
               <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                Generates a secure compressed ZIP archive containing the local SQLite database and all uploaded staff photographs. Backups should be saved in a safe external location regularly.
+                Generates a secure compressed ZIP archive containing the local SQLite database and
+                all uploaded staff photographs. Backups should be saved in a safe external location
+                regularly.
               </p>
             </div>
 
             {backupStatus.message && (
-              <div className={`flex items-start gap-2 rounded-xl border p-4 text-xs leading-relaxed ${
-                backupStatus.type === 'success'
-                  ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
-                  : 'border-red-500/20 bg-red-50/50 text-red-650'
-              }`}>
-                {backupStatus.type === 'success' ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+              <div
+                className={`flex items-start gap-2 rounded-xl border p-4 text-xs leading-relaxed ${
+                  backupStatus.type === 'success'
+                    ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
+                    : 'border-red-500/20 bg-red-50/50 text-red-650'
+                }`}
+              >
+                {backupStatus.type === 'success' ? (
+                  <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                )}
                 <span className="whitespace-pre-line">{backupStatus.message}</span>
               </div>
             )}
@@ -158,17 +173,25 @@ export default function BackupRestorePage() {
             <div>
               <h2 className="text-lg font-bold text-slate-800">Restore System Backup</h2>
               <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                Restores a previous database and photos archive. <strong className="text-amber-600">WARNING:</strong> This will overwrite all current staff profiles, settings, and attendance records on this device.
+                Restores a previous database and photos archive.{' '}
+                <strong className="text-amber-600">WARNING:</strong> This will overwrite all current
+                staff profiles, settings, and attendance records on this device.
               </p>
             </div>
 
             {restoreStatus.message && (
-              <div className={`flex items-start gap-2 rounded-xl border p-4 text-xs leading-relaxed ${
-                restoreStatus.type === 'success'
-                  ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
-                  : 'border-red-500/20 bg-red-50/50 text-red-650'
-              }`}>
-                {restoreStatus.type === 'success' ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+              <div
+                className={`flex items-start gap-2 rounded-xl border p-4 text-xs leading-relaxed ${
+                  restoreStatus.type === 'success'
+                    ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-700'
+                    : 'border-red-500/20 bg-red-50/50 text-red-650'
+                }`}
+              >
+                {restoreStatus.type === 'success' ? (
+                  <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                )}
                 <span>{restoreStatus.message}</span>
               </div>
             )}

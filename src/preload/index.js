@@ -3,6 +3,19 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
+  platform: process.platform,
+  minimizeWindow: () => ipcRenderer.send('window:minimize'),
+  maximizeWindow: () => ipcRenderer.send('window:maximize'),
+  closeWindow: () => ipcRenderer.send('window:close'),
+  isWindowMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  onWindowMaximized: (callback) => {
+    const subscription = (_, isMax) => callback(isMax)
+    ipcRenderer.on('window:maximized-state', subscription)
+    return () => {
+      ipcRenderer.removeListener('window:maximized-state', subscription)
+    }
+  },
+
   // Dialogs
   openFileDialog: (options) => ipcRenderer.invoke('dialog:open-file', options),
   saveFileDialog: (options) => ipcRenderer.invoke('dialog:save-file', options),
@@ -56,7 +69,8 @@ const api = {
   getFilterDefinitions: () => ipcRenderer.invoke('dataimport:get-filters'),
   getActiveFilterDefinitions: () => ipcRenderer.invoke('dataimport:get-active-filters'),
   addFilterDefinition: (filter) => ipcRenderer.invoke('dataimport:add-filter', filter),
-  updateFilterDefinition: (id, filter) => ipcRenderer.invoke('dataimport:update-filter', { id, filter }),
+  updateFilterDefinition: (id, filter) =>
+    ipcRenderer.invoke('dataimport:update-filter', { id, filter }),
   deleteFilterDefinition: (id) => ipcRenderer.invoke('dataimport:delete-filter', id),
 
   // Backup & Restore

@@ -8,15 +8,15 @@ export async function verifyLogin(username, password) {
     const db = getDbConnection()
     const [rows] = await db.execute('SELECT * FROM admin WHERE username = ?', [username])
     const user = rows[0]
-    
+
     if (!user) return { success: false, message: 'Invalid credentials' }
-    
+
     const matches = bcrypt.compareSync(password, user.password_hash)
     if (!matches) return { success: false, message: 'Invalid credentials' }
-    
+
     // Log successful login
     await logAudit('LOGIN_SUCCESS', 'admin', user.id, { username }, username)
-    
+
     return { success: true, user: { id: user.id, username: user.username } }
   } catch (error) {
     console.error('Login error:', error)
@@ -30,23 +30,26 @@ export async function changePassword(username, oldPassword, newPassword) {
     const db = getDbConnection()
     const [rows] = await db.execute('SELECT * FROM admin WHERE username = ?', [username])
     const user = rows[0]
-    
+
     if (!user) return { success: false, message: 'User not found' }
-    
+
     const matches = bcrypt.compareSync(oldPassword, user.password_hash)
     if (!matches) return { success: false, message: 'Incorrect current password' }
-    
+
     const salt = bcrypt.genSaltSync(10)
     const newHash = bcrypt.hashSync(newPassword, salt)
-    
-    await db.execute(`
+
+    await db.execute(
+      `
       UPDATE admin 
       SET password_hash = ?
       WHERE username = ?
-    `, [newHash, username])
-    
+    `,
+      [newHash, username]
+    )
+
     await logAudit('PASSWORD_CHANGED', 'admin', user.id, { username }, username)
-    
+
     return { success: true, message: 'Password updated successfully' }
   } catch (error) {
     console.error('Change password error:', error)

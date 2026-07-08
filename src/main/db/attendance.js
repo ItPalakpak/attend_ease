@@ -6,7 +6,7 @@ import { logAudit } from './audit.js'
 async function calculateStatus(timeStr) {
   const settings = await getSettings()
   const presentCutoff = settings.present_cutoff || '08:00'
-  
+
   const scanTime = timeStr.substring(0, 5) // Extract HH:MM
   if (scanTime <= presentCutoff) {
     return 'Present'
@@ -19,31 +19,36 @@ async function calculateStatus(timeStr) {
 export async function recordClockIn(staffFormattedId, dateStr, timeStr) {
   const db = getDbConnection()
   const connection = await db.getConnection()
-  
+
   try {
     await connection.beginTransaction()
 
     // Find staff by formatted staff_id (e.g. "EMP0001")
-    const [staffRows] = await connection.execute('SELECT * FROM staff WHERE staff_id = ?', [staffFormattedId])
+    const [staffRows] = await connection.execute('SELECT * FROM staff WHERE staff_id = ?', [
+      staffFormattedId
+    ])
     const staff = staffRows[0]
     if (!staff) {
       connection.release()
       return { success: false, message: 'Invalid QR Code: Staff not found' }
     }
-    
+
     if (staff.employment_status !== 'Active') {
       connection.release()
       return { success: false, message: `Staff is inactive (${staff.employment_status})` }
     }
 
     // Check if already clocked in today
-    const [existingRows] = await connection.execute('SELECT * FROM attendance WHERE staff_id = ? AND date = ?', [staff.id, dateStr])
+    const [existingRows] = await connection.execute(
+      'SELECT * FROM attendance WHERE staff_id = ? AND date = ?',
+      [staff.id, dateStr]
+    )
     const existing = existingRows[0]
     if (existing) {
       connection.release()
-      return { 
-        success: false, 
-        message: 'Already clocked in today', 
+      return {
+        success: false,
+        message: 'Already clocked in today',
         alreadyRecorded: true,
         attendance: {
           name: `${staff.first_name} ${staff.last_name}`,
@@ -57,12 +62,19 @@ export async function recordClockIn(staffFormattedId, dateStr, timeStr) {
     // Calculate status (Present or Late)
     const status = await calculateStatus(timeStr)
 
-    await connection.execute(`
+    await connection.execute(
+      `
       INSERT INTO attendance (staff_id, date, time_in, status)
       VALUES (?, ?, ?, ?)
-    `, [staff.id, dateStr, timeStr, status])
+    `,
+      [staff.id, dateStr, timeStr, status]
+    )
 
-    await logAudit('ATTENDANCE_IN', 'attendance', staff.id, { date: dateStr, time: timeStr, status })
+    await logAudit('ATTENDANCE_IN', 'attendance', staff.id, {
+      date: dateStr,
+      time: timeStr,
+      status
+    })
 
     await connection.commit()
 
@@ -94,12 +106,14 @@ export async function recordClockIn(staffFormattedId, dateStr, timeStr) {
 export async function recordClockOut(staffFormattedId, dateStr, timeStr) {
   const db = getDbConnection()
   const connection = await db.getConnection()
-  
+
   try {
     await connection.beginTransaction()
 
     // Find staff by formatted staff_id
-    const [staffRows] = await connection.execute('SELECT * FROM staff WHERE staff_id = ?', [staffFormattedId])
+    const [staffRows] = await connection.execute('SELECT * FROM staff WHERE staff_id = ?', [
+      staffFormattedId
+    ])
     const staff = staffRows[0]
     if (!staff) {
       connection.release()
@@ -107,7 +121,10 @@ export async function recordClockOut(staffFormattedId, dateStr, timeStr) {
     }
 
     // Check if they clocked in today
-    const [existingRows] = await connection.execute('SELECT * FROM attendance WHERE staff_id = ? AND date = ?', [staff.id, dateStr])
+    const [existingRows] = await connection.execute(
+      'SELECT * FROM attendance WHERE staff_id = ? AND date = ?',
+      [staff.id, dateStr]
+    )
     const existing = existingRows[0]
     if (!existing) {
       connection.release()
@@ -116,8 +133,8 @@ export async function recordClockOut(staffFormattedId, dateStr, timeStr) {
 
     if (existing.time_out) {
       connection.release()
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: 'Already clocked out today',
         alreadyRecorded: true,
         attendance: {
@@ -129,11 +146,14 @@ export async function recordClockOut(staffFormattedId, dateStr, timeStr) {
       }
     }
 
-    await connection.execute(`
+    await connection.execute(
+      `
       UPDATE attendance
       SET time_out = ?
       WHERE id = ?
-    `, [timeStr, existing.id])
+    `,
+      [timeStr, existing.id]
+    )
 
     await logAudit('ATTENDANCE_OUT', 'attendance', staff.id, { date: dateStr, time: timeStr })
 
@@ -169,14 +189,15 @@ export async function getDailyAttendance(dateStr) {
     const db = getDbConnection()
     const settings = await getSettings()
     const workingDays = settings.working_days || [1, 2, 3, 4, 5]
-    
+
     // Parse date to check day of week
     const dateObj = new Date(dateStr)
     const dayOfWeek = dateObj.getDay() // 0 = Sunday, 1 = Monday...
     const isWorkingDay = workingDays.includes(dayOfWeek)
-    
+
     // Select all active staff and join their attendance record for this day
-    const [records] = await db.execute(`
+    const [records] = await db.execute(
+      `
       SELECT s.id as staff_id, 
              s.staff_id as formatted_id, 
              s.first_name, 
@@ -193,11 +214,13 @@ export async function getDailyAttendance(dateStr) {
       LEFT JOIN attendance a ON s.id = a.staff_id AND a.date = ?
       WHERE s.employment_status = 'Active'
       ORDER BY s.staff_id ASC
-    `, [dateStr])
-    
+    `,
+      [dateStr]
+    )
+
     // For each record, if there's no attendance record:
     // If it's a working day, status is 'Absent'. Otherwise, they are off-duty (null or 'Off').
-    return records.map(r => {
+    return records.map((r) => {
       if (!r.status) {
         r.status = isWorkingDay ? 'Absent' : 'Off-duty'
       }
@@ -213,8 +236,9 @@ export async function getDailyAttendance(dateStr) {
 export async function getAttendanceRange(startDate, endDate) {
   try {
     const db = getDbConnection()
-    
-    const [rows] = await db.execute(`
+
+    const [rows] = await db.execute(
+      `
       SELECT a.date, 
              s.staff_id as formatted_id, 
              s.first_name, 
@@ -230,7 +254,9 @@ export async function getAttendanceRange(startDate, endDate) {
       LEFT JOIN departments d ON s.department_id = d.id
       WHERE a.date BETWEEN ? AND ?
       ORDER BY a.date DESC, a.time_in DESC
-    `, [startDate, endDate])
+    `,
+      [startDate, endDate]
+    )
     return rows
   } catch (error) {
     console.error('Get attendance range error:', error)
@@ -242,35 +268,44 @@ export async function getAttendanceRange(startDate, endDate) {
 export async function getDashboardStats(dateStr) {
   try {
     const db = getDbConnection()
-    
+
     // Total staff count
-    const [staffCountRows] = await db.execute("SELECT COUNT(*) as count FROM staff WHERE employment_status = 'Active'")
+    const [staffCountRows] = await db.execute(
+      "SELECT COUNT(*) as count FROM staff WHERE employment_status = 'Active'"
+    )
     const totalStaff = staffCountRows[0].count
-    
+
     // Attendance records for today
-    const [todayAttendance] = await db.execute("SELECT status, COUNT(*) as count FROM attendance WHERE date = ? GROUP BY status", [dateStr])
-    
+    const [todayAttendance] = await db.execute(
+      'SELECT status, COUNT(*) as count FROM attendance WHERE date = ? GROUP BY status',
+      [dateStr]
+    )
+
     let presentCount = 0
     let lateCount = 0
-    
+
     for (const record of todayAttendance) {
       if (record.status === 'Present') presentCount = record.count
       if (record.status === 'Late') lateCount = record.count
     }
-    
+
     // Settings to check if working day
     const settings = await getSettings()
     const workingDays = settings.working_days || [1, 2, 3, 4, 5]
     const dateObj = new Date(dateStr)
     const isWorkingDay = workingDays.includes(dateObj.getDay())
-    
+
     const absentCount = isWorkingDay ? Math.max(0, totalStaff - (presentCount + lateCount)) : 0
-    
+
     // Role and department counts
-    const [roleCountRows] = await db.execute("SELECT COUNT(*) as count FROM roles WHERE status = 'Active'")
+    const [roleCountRows] = await db.execute(
+      "SELECT COUNT(*) as count FROM roles WHERE status = 'Active'"
+    )
     const totalRoles = roleCountRows[0].count
 
-    const [deptCountRows] = await db.execute("SELECT COUNT(*) as count FROM departments WHERE status = 'Active'")
+    const [deptCountRows] = await db.execute(
+      "SELECT COUNT(*) as count FROM departments WHERE status = 'Active'"
+    )
     const totalDepts = deptCountRows[0].count
 
     return {

@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
-  content: [
-    "./src/renderer/index.html",
-    "./src/renderer/src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./src/renderer/index.html', './src/renderer/src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -19,7 +16,7 @@ module.exports = {
           600: '#e6be00',
           700: '#b89800',
           800: '#8a7200',
-          900: '#5c4c00',
+          900: '#5c4c00'
         },
         // Map sky, blue, and indigo to primary Yellow scale so all standard theme brand colors switch automatically
         sky: {
@@ -32,7 +29,7 @@ module.exports = {
           600: '#e6be00',
           700: '#b89800',
           800: '#8a7200',
-          900: '#5c4c00',
+          900: '#5c4c00'
         },
         blue: {
           50: '#fffdf0',
@@ -44,7 +41,7 @@ module.exports = {
           600: '#e6be00',
           700: '#b89800',
           800: '#8a7200',
-          900: '#5c4c00',
+          900: '#5c4c00'
         },
         indigo: {
           50: '#fffdf0',
@@ -56,10 +53,10 @@ module.exports = {
           600: '#e6be00',
           700: '#b89800',
           800: '#8a7200',
-          900: '#5c4c00',
+          900: '#5c4c00'
         }
       }
-    },
+    }
   },
-  plugins: [],
+  plugins: []
 }

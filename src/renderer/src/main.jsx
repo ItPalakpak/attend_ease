@@ -7,52 +7,64 @@ import App from './App'
 if (typeof window !== 'undefined' && !window.api) {
   // Initialize mock database in localStorage if empty
   if (!localStorage.getItem('mock_staff')) {
-    localStorage.setItem('mock_staff', JSON.stringify([
-      {
-        id: 1,
-        staff_id: 'EMP0001',
-        employee_number: '1004543',
-        first_name: 'Rex Dominic',
-        middle_name: 'Beronilla',
-        last_name: 'Sihay',
-        gender: 'Male',
-        birth_date: '1995-08-15',
-        role_id: 1,
-        role_name: 'COURIER',
-        department_id: 1,
-        department_name: 'Operations',
-        date_hired: '2022-03-01',
-        employment_status: 'Active',
-        contact_number: '+63 912 345 6789',
-        email: 'rex.sihay@flashexpress.com',
-        address: 'Manila, Philippines',
-        photo_path: 'mock_photo.png',
-        qr_code_path: 'mock_qr.png',
-        emergency_contact_name: 'Jane Sihay',
-        emergency_contact_number: '+63 999 888 7777',
-        role_history: []
-      }
-    ]))
+    localStorage.setItem(
+      'mock_staff',
+      JSON.stringify([
+        {
+          id: 1,
+          staff_id: 'EMP0001',
+          employee_number: '1004543',
+          first_name: 'Rex Dominic',
+          middle_name: 'Beronilla',
+          last_name: 'Sihay',
+          gender: 'Male',
+          birth_date: '1995-08-15',
+          role_id: 1,
+          role_name: 'COURIER',
+          department_id: 1,
+          department_name: 'Operations',
+          date_hired: '2022-03-01',
+          employment_status: 'Active',
+          contact_number: '+63 912 345 6789',
+          email: 'rex.sihay@flashexpress.com',
+          address: 'Manila, Philippines',
+          photo_path: 'mock_photo.png',
+          qr_code_path: 'mock_qr.png',
+          emergency_contact_name: 'Jane Sihay',
+          emergency_contact_number: '+63 999 888 7777',
+          role_history: []
+        }
+      ])
+    )
   }
   if (!localStorage.getItem('mock_roles')) {
-    localStorage.setItem('mock_roles', JSON.stringify([
-      { id: 1, role_name: 'COURIER', status: 'Active', description: 'Delivery courier' }
-    ]))
+    localStorage.setItem(
+      'mock_roles',
+      JSON.stringify([
+        { id: 1, role_name: 'COURIER', status: 'Active', description: 'Delivery courier' }
+      ])
+    )
   }
   if (!localStorage.getItem('mock_departments')) {
-    localStorage.setItem('mock_departments', JSON.stringify([
-      { id: 1, department_name: 'Operations', status: 'Active', description: 'Operations team' }
-    ]))
+    localStorage.setItem(
+      'mock_departments',
+      JSON.stringify([
+        { id: 1, department_name: 'Operations', status: 'Active', description: 'Operations team' }
+      ])
+    )
   }
   if (!localStorage.getItem('mock_settings')) {
-    localStorage.setItem('mock_settings', JSON.stringify({
-      org_name: 'Flash Express',
-      org_address: 'Manila, Philippines',
-      present_cutoff: '08:00',
-      late_cutoff: '08:15',
-      work_start: '08:00',
-      working_days: [1, 2, 3, 4, 5]
-    }))
+    localStorage.setItem(
+      'mock_settings',
+      JSON.stringify({
+        org_name: 'Flash Express',
+        org_address: 'Manila, Philippines',
+        present_cutoff: '08:00',
+        late_cutoff: '08:15',
+        work_start: '08:00',
+        working_days: [1, 2, 3, 4, 5]
+      })
+    )
   }
 
   window.api = {
@@ -64,11 +76,11 @@ if (typeof window !== 'undefined' && !window.api) {
     },
     getStaffById: async (id) => {
       const staffList = JSON.parse(localStorage.getItem('mock_staff'))
-      return staffList.find(s => String(s.id) === String(id)) || null
+      return staffList.find((s) => String(s.id) === String(id)) || null
     },
     addStaff: async (staffData) => {
       const staffList = JSON.parse(localStorage.getItem('mock_staff'))
-      const id = staffList.length > 0 ? Math.max(...staffList.map(s => s.id)) + 1 : 1
+      const id = staffList.length > 0 ? Math.max(...staffList.map((s) => s.id)) + 1 : 1
       const staffId = `EMP${String(id).padStart(4, '0')}`
       const newStaff = {
         ...staffData,
@@ -76,7 +88,16 @@ if (typeof window !== 'undefined' && !window.api) {
         staff_id: staffId,
         photo_path: staffData.photo_path || `mock_photo_${id}.png`,
         qr_code_path: `mock_qr_${id}.png`,
-        role_history: staffData.role_id ? [{ changed_at: new Date().toISOString(), changed_by: 'Admin', old_role_name: '(Initial)', new_role_name: 'COURIER' }] : []
+        role_history: staffData.role_id
+          ? [
+              {
+                changed_at: new Date().toISOString(),
+                changed_by: 'Admin',
+                old_role_name: '(Initial)',
+                new_role_name: 'COURIER'
+              }
+            ]
+          : []
       }
       staffList.push(newStaff)
       localStorage.setItem('mock_staff', JSON.stringify(staffList))
@@ -84,7 +105,7 @@ if (typeof window !== 'undefined' && !window.api) {
     },
     updateStaff: async (id, staffData) => {
       const staffList = JSON.parse(localStorage.getItem('mock_staff'))
-      const idx = staffList.findIndex(s => String(s.id) === String(id))
+      const idx = staffList.findIndex((s) => String(s.id) === String(id))
       if (idx !== -1) {
         staffList[idx] = { ...staffList[idx], ...staffData }
         localStorage.setItem('mock_staff', JSON.stringify(staffList))
@@ -94,13 +115,13 @@ if (typeof window !== 'undefined' && !window.api) {
     },
     deleteStaff: async (id) => {
       const staffList = JSON.parse(localStorage.getItem('mock_staff'))
-      const filtered = staffList.filter(s => String(s.id) !== String(id))
+      const filtered = staffList.filter((s) => String(s.id) !== String(id))
       localStorage.setItem('mock_staff', JSON.stringify(filtered))
       return { success: true }
     },
     regenerateQRCode: async (id) => {
       const staffList = JSON.parse(localStorage.getItem('mock_staff'))
-      const idx = staffList.findIndex(s => String(s.id) === String(id))
+      const idx = staffList.findIndex((s) => String(s.id) === String(id))
       if (idx !== -1) {
         staffList[idx].qr_code_path = `mock_qr_${id}_new.png`
         localStorage.setItem('mock_staff', JSON.stringify(staffList))
@@ -112,18 +133,18 @@ if (typeof window !== 'undefined' && !window.api) {
     getRoles: async () => JSON.parse(localStorage.getItem('mock_roles')),
     getActiveRoles: async () => {
       const roles = JSON.parse(localStorage.getItem('mock_roles'))
-      return roles.filter(r => r.status === 'Active')
+      return roles.filter((r) => r.status === 'Active')
     },
     addRole: async (role) => {
       const roles = JSON.parse(localStorage.getItem('mock_roles'))
-      const id = roles.length > 0 ? Math.max(...roles.map(r => r.id)) + 1 : 1
+      const id = roles.length > 0 ? Math.max(...roles.map((r) => r.id)) + 1 : 1
       roles.push({ ...role, id })
       localStorage.setItem('mock_roles', JSON.stringify(roles))
       return { success: true, id }
     },
     updateRole: async (id, role) => {
       const roles = JSON.parse(localStorage.getItem('mock_roles'))
-      const idx = roles.findIndex(r => String(r.id) === String(id))
+      const idx = roles.findIndex((r) => String(r.id) === String(id))
       if (idx !== -1) {
         roles[idx] = { ...roles[idx], ...role }
         localStorage.setItem('mock_roles', JSON.stringify(roles))
@@ -133,7 +154,7 @@ if (typeof window !== 'undefined' && !window.api) {
     },
     deleteRole: async (id) => {
       const roles = JSON.parse(localStorage.getItem('mock_roles'))
-      const filtered = roles.filter(r => String(r.id) !== String(id))
+      const filtered = roles.filter((r) => String(r.id) !== String(id))
       localStorage.setItem('mock_roles', JSON.stringify(filtered))
       return { success: true }
     },
@@ -141,18 +162,18 @@ if (typeof window !== 'undefined' && !window.api) {
     getDepartments: async () => JSON.parse(localStorage.getItem('mock_departments')),
     getActiveDepartments: async () => {
       const depts = JSON.parse(localStorage.getItem('mock_departments'))
-      return depts.filter(d => d.status === 'Active')
+      return depts.filter((d) => d.status === 'Active')
     },
     addDepartment: async (dept) => {
       const depts = JSON.parse(localStorage.getItem('mock_departments'))
-      const id = depts.length > 0 ? Math.max(...depts.map(d => d.id)) + 1 : 1
+      const id = depts.length > 0 ? Math.max(...depts.map((d) => d.id)) + 1 : 1
       depts.push({ ...dept, id })
       localStorage.setItem('mock_departments', JSON.stringify(depts))
       return { success: true, id }
     },
     updateDepartment: async (id, dept) => {
       const depts = JSON.parse(localStorage.getItem('mock_departments'))
-      const idx = depts.findIndex(d => String(d.id) === String(id))
+      const idx = depts.findIndex((d) => String(d.id) === String(id))
       if (idx !== -1) {
         depts[idx] = { ...depts[idx], ...dept }
         localStorage.setItem('mock_departments', JSON.stringify(depts))
@@ -162,7 +183,7 @@ if (typeof window !== 'undefined' && !window.api) {
     },
     deleteDepartment: async (id) => {
       const depts = JSON.parse(localStorage.getItem('mock_departments'))
-      const filtered = depts.filter(d => String(d.id) !== String(id))
+      const filtered = depts.filter((d) => String(d.id) !== String(id))
       localStorage.setItem('mock_departments', JSON.stringify(filtered))
       return { success: true }
     },

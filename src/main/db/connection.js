@@ -15,7 +15,9 @@ export async function initDbConnection() {
     password: config.password
   })
 
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${config.database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`)
+  await connection.query(
+    `CREATE DATABASE IF NOT EXISTS \`${config.database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+  )
   await connection.end()
 
   // Create pool instance
@@ -35,7 +37,9 @@ export async function initDbConnection() {
 
 export function getDbConnection() {
   if (!poolInstance) {
-    throw new Error('Database connection pool has not been initialized. Call initDbConnection() first.')
+    throw new Error(
+      'Database connection pool has not been initialized. Call initDbConnection() first.'
+    )
   }
   return poolInstance
 }

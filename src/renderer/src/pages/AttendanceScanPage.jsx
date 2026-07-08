@@ -54,90 +54,93 @@ export default function AttendanceScanPage() {
   }, [])
 
   // Handle decoded QR — uses refs so it never goes stale
-  const handleDecode = useCallback(async (decodedText) => {
-    // Prevent processing while cooldown is active (showing result)
-    if (cooldownRef.current) return
-    cooldownRef.current = true
+  const handleDecode = useCallback(
+    async (decodedText) => {
+      // Prevent processing while cooldown is active (showing result)
+      if (cooldownRef.current) return
+      cooldownRef.current = true
 
-    setErrorMsg('')
-    setScanResult(null)
-    setWarnResult(null)
+      setErrorMsg('')
+      setScanResult(null)
+      setWarnResult(null)
 
-    try {
-      let scannedData
       try {
-        scannedData = JSON.parse(decodedText)
-      } catch (e) {
-        // Fallback: assume the whole string is the raw staffId
-        scannedData = { id: decodedText.trim() }
-      }
-
-      const staffId = scannedData.id || scannedData.staffId || decodedText.trim()
-
-      if (!staffId) {
-        throw new Error('Invalid QR Code format. No employee ID found.')
-      }
-
-      const d = new Date()
-      const dateStr = d.toISOString().split('T')[0]
-      const timeStr = d.toTimeString().split(' ')[0] // HH:MM:SS
-
-      let res
-      if (scanModeRef.current === 'in') {
-        res = await window.api.clockIn({ staffId, dateStr, timeStr })
-      } else {
-        res = await window.api.clockOut({ staffId, dateStr, timeStr })
-      }
-
-      if (res.success) {
-        // Determine voice message based on mode and status
-        const status = res.attendance?.status
-        if (scanModeRef.current === 'in') {
-          if (status === 'Late') {
-            speak('You are late')
-          } else {
-            speak('Good day, you are checked in')
-          }
-        } else {
-          speak('Have a great evening')
+        let scannedData
+        try {
+          scannedData = JSON.parse(decodedText)
+        } catch (e) {
+          // Fallback: assume the whole string is the raw staffId
+          scannedData = { id: decodedText.trim() }
         }
 
-        setScanResult({
-          success: true,
-          message: res.message,
-          staff: res.staff,
-          attendance: res.attendance
-        })
+        const staffId = scannedData.id || scannedData.staffId || decodedText.trim()
 
-        // Auto-clear result after 4 seconds, then allow next scan
-        if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
-        resultTimerRef.current = setTimeout(() => {
-          setScanResult(null)
-          cooldownRef.current = false
-        }, 4000)
-      } else if (res.alreadyRecorded) {
-        // Already clocked in/out — show as warning, NOT error
-        speak('Scan already processed')
+        if (!staffId) {
+          throw new Error('Invalid QR Code format. No employee ID found.')
+        }
 
-        setWarnResult({
-          message: res.message,
-          attendance: res.attendance
-        })
+        const d = new Date()
+        const dateStr = d.toISOString().split('T')[0]
+        const timeStr = d.toTimeString().split(' ')[0] // HH:MM:SS
 
-        if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
-        resultTimerRef.current = setTimeout(() => {
-          setWarnResult(null)
-          cooldownRef.current = false
-        }, 4000)
-      } else {
-        throw new Error(res.message || 'Operation failed')
+        let res
+        if (scanModeRef.current === 'in') {
+          res = await window.api.clockIn({ staffId, dateStr, timeStr })
+        } else {
+          res = await window.api.clockOut({ staffId, dateStr, timeStr })
+        }
+
+        if (res.success) {
+          // Determine voice message based on mode and status
+          const status = res.attendance?.status
+          if (scanModeRef.current === 'in') {
+            if (status === 'Late') {
+              speak('You are late')
+            } else {
+              speak('Good day, you are checked in')
+            }
+          } else {
+            speak('Have a great evening')
+          }
+
+          setScanResult({
+            success: true,
+            message: res.message,
+            staff: res.staff,
+            attendance: res.attendance
+          })
+
+          // Auto-clear result after 4 seconds, then allow next scan
+          if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+          resultTimerRef.current = setTimeout(() => {
+            setScanResult(null)
+            cooldownRef.current = false
+          }, 4000)
+        } else if (res.alreadyRecorded) {
+          // Already clocked in/out — show as warning, NOT error
+          speak('Scan already processed')
+
+          setWarnResult({
+            message: res.message,
+            attendance: res.attendance
+          })
+
+          if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+          resultTimerRef.current = setTimeout(() => {
+            setWarnResult(null)
+            cooldownRef.current = false
+          }, 4000)
+        } else {
+          throw new Error(res.message || 'Operation failed')
+        }
+      } catch (err) {
+        console.error(err)
+        setErrorMsg(err.message || 'Verification failed')
+        cooldownRef.current = false
       }
-    } catch (err) {
-      console.error(err)
-      setErrorMsg(err.message || 'Verification failed')
-      cooldownRef.current = false
-    }
-  }, [speak])
+    },
+    [speak]
+  )
 
   // Start scanning — opens the camera
   const startScanning = useCallback(async () => {
@@ -255,7 +258,12 @@ export default function AttendanceScanPage() {
               {now.toLocaleTimeString('en-US', { hour12: false })}
             </p>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-              {now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
             </p>
           </div>
 
@@ -286,7 +294,9 @@ export default function AttendanceScanPage() {
             {!isScanning && (
               <div className="flex flex-col items-center justify-center py-8 text-slate-400 rounded-xl bg-slate-50">
                 <Camera size={32} className="stroke-1 mb-2" />
-                <p className="text-xs font-medium">Click &quot;Start Scanning&quot; to open the camera</p>
+                <p className="text-xs font-medium">
+                  Click &quot;Start Scanning&quot; to open the camera
+                </p>
               </div>
             )}
             <div
@@ -351,13 +361,17 @@ export default function AttendanceScanPage() {
                   {warnResult.attendance.time_in && (
                     <div className="rounded-xl border border-amber-100 bg-white p-3 shadow-sm">
                       <p className="text-[10px] font-semibold text-slate-400 uppercase">Time In</p>
-                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">{warnResult.attendance.time_in}</p>
+                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">
+                        {warnResult.attendance.time_in}
+                      </p>
                     </div>
                   )}
                   {warnResult.attendance.time_out && (
                     <div className="rounded-xl border border-amber-100 bg-white p-3 shadow-sm">
                       <p className="text-[10px] font-semibold text-slate-400 uppercase">Time Out</p>
-                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">{warnResult.attendance.time_out}</p>
+                      <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">
+                        {warnResult.attendance.time_out}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -403,14 +417,18 @@ export default function AttendanceScanPage() {
                         }}
                       />
                     ) : null}
-                    <div className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-xl font-bold text-slate-500 ${scanResult.staff.photo_path ? 'hidden' : ''}`}>
+                    <div
+                      className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-xl font-bold text-slate-500 ${scanResult.staff.photo_path ? 'hidden' : ''}`}
+                    >
                       {scanResult.staff.name?.[0]}
                     </div>
                   </div>
 
                   <div className="text-center sm:text-left space-y-1">
                     <h4 className="text-base font-bold text-slate-800">{scanResult.staff.name}</h4>
-                    <p className="text-xs font-semibold text-sky-600">{scanResult.staff.role_name || 'Staff'}</p>
+                    <p className="text-xs font-semibold text-sky-600">
+                      {scanResult.staff.role_name || 'Staff'}
+                    </p>
                     <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
                       ID: {scanResult.staff.formatted_id || scanResult.staff.staff_id}
                     </p>
@@ -420,21 +438,27 @@ export default function AttendanceScanPage() {
                 {/* Log Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Time Recorded</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                      Time Recorded
+                    </p>
                     <p className="mt-1 font-mono text-base font-bold text-slate-800">
                       {scanResult.attendance.time_in || scanResult.attendance.time_out || '--:--'}
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Status Indicator</p>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider mt-1 ${
-                      ['Present', 'Active'].includes(scanResult.attendance.status)
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                        : scanResult.attendance.status === 'Late'
-                          ? 'bg-red-50 text-red-700 border border-red-100'
-                          : 'bg-amber-50 text-amber-700 border border-amber-100'
-                    }`}>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                      Status Indicator
+                    </p>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider mt-1 ${
+                        ['Present', 'Active'].includes(scanResult.attendance.status)
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          : scanResult.attendance.status === 'Late'
+                            ? 'bg-red-50 text-red-700 border border-red-100'
+                            : 'bg-amber-50 text-amber-700 border border-amber-100'
+                      }`}
+                    >
                       {scanResult.attendance.status}
                     </span>
                   </div>

@@ -43,7 +43,7 @@ export async function updateSettings(settingsObj) {
     }
 
     await connection.commit()
-    
+
     await logAudit('SETTINGS_UPDATED', 'settings', null, settingsObj)
     return { success: true }
   } catch (error) {

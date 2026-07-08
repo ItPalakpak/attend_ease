@@ -16,53 +16,61 @@ export function getImportStoragePath() {
 export async function importDataset(filePath, description) {
   const db = getDbConnection()
   const importsDir = getImportStoragePath()
-  
+
   if (!existsSync(filePath)) {
     return { success: false, message: 'Source file not found' }
   }
-  
+
   const fileName = basename(filePath)
   const timestamp = Date.now()
   const ext = extname(filePath)
   const storedFileName = `${timestamp}_${fileName}`
   const storedFilePath = join(importsDir, storedFileName)
-  
+
   // Copy original file to local app data folder
   copyFileSync(filePath, storedFilePath)
-  
+
   try {
     // Read and parse file with SheetJS to verify formatting and row count
     const workbook = XLSX.readFile(storedFilePath)
     const firstSheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[firstSheetName]
-    
+
     // Parse as JSON array of objects
     const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
-    
+
     if (rows.length === 0) {
       unlinkSync(storedFilePath)
       return { success: false, message: 'The uploaded file is empty' }
     }
-    
+
     // Extract column headers (keys from first row)
     const columns = Object.keys(rows[0])
-    
+
     // Insert dataset metadata into MySQL database
-    const [datasetResult] = await db.execute(`
+    const [datasetResult] = await db.execute(
+      `
       INSERT INTO imported_datasets (file_name, original_file_path, description, columns_json, row_count)
       VALUES (?, ?, ?, ?, ?)
-    `, [fileName, storedFilePath, description || '', JSON.stringify(columns), rows.length])
-    
+    `,
+      [fileName, storedFilePath, description || '', JSON.stringify(columns), rows.length]
+    )
+
     const datasetId = datasetResult.insertId
-    
-    await logAudit('DATASET_IMPORTED', 'imported_datasets', datasetId, { fileName, rowCount: rows.length })
-    
+
+    await logAudit('DATASET_IMPORTED', 'imported_datasets', datasetId, {
+      fileName,
+      rowCount: rows.length
+    })
+
     return { success: true, id: datasetId, fileName, rowCount: rows.length }
   } catch (error) {
     console.error('Import dataset error:', error)
     // Clean up stored file on failure
     if (existsSync(storedFilePath)) {
-      try { unlinkSync(storedFilePath) } catch (e) {}
+      try {
+        unlinkSync(storedFilePath)
+      } catch (e) {}
     }
     return { success: false, message: `Failed to parse file: ${error.message}` }
   }
@@ -87,14 +95,18 @@ export async function deleteDataset(id) {
     const [datasetRows] = await db.execute('SELECT * FROM imported_datasets WHERE id = ?', [id])
     const dataset = datasetRows[0]
     if (!dataset) return { success: false, message: 'Dataset not found' }
-    
+
     // Delete local file
     if (dataset.original_file_path && existsSync(dataset.original_file_path)) {
-      try { unlinkSync(dataset.original_file_path) } catch (e) { console.error(e) }
+      try {
+        unlinkSync(dataset.original_file_path)
+      } catch (e) {
+        console.error(e)
+      }
     }
-    
+
     await db.execute('DELETE FROM imported_datasets WHERE id = ?', [id])
-    
+
     await logAudit('DATASET_DELETED', 'imported_datasets', id, { fileName: dataset.file_name })
     return { success: true }
   } catch (error) {
@@ -106,12 +118,12 @@ export async function deleteDataset(id) {
 // CHANGED: added helper to filter Excel rows dynamically in JavaScript memory
 function filterRowsInMemory(rows, activeFilters) {
   if (!activeFilters || activeFilters.length === 0) return rows
-  
-  return rows.filter(row => {
+
+  return rows.filter((row) => {
     for (const f of activeFilters) {
       const value = row[f.column_key]
       const strVal = value !== undefined && value !== null ? String(value).trim() : ''
-      
+
       if (f.filter_type === 'date_range') {
         if (f.val1 && f.val2) {
           if (strVal < f.val1 || strVal > f.val2) return false
@@ -124,7 +136,7 @@ function filterRowsInMemory(rows, activeFilters) {
         const numVal = parseFloat(strVal)
         const minVal = parseFloat(f.val1)
         const maxVal = parseFloat(f.val2)
-        
+
         if (!isNaN(numVal)) {
           if (!isNaN(minVal) && !isNaN(maxVal)) {
             if (numVal < minVal || numVal > maxVal) return false
@@ -154,34 +166,36 @@ function filterRowsInMemory(rows, activeFilters) {
 export async function queryDatasetRows(datasetId, activeFilters, limit = 50, offset = 0) {
   try {
     const db = getDbConnection()
-    const [datasetRows] = await db.execute('SELECT * FROM imported_datasets WHERE id = ?', [datasetId])
+    const [datasetRows] = await db.execute('SELECT * FROM imported_datasets WHERE id = ?', [
+      datasetId
+    ])
     const dataset = datasetRows[0]
     if (!dataset) return { success: false, message: 'Dataset not found' }
-    
+
     if (!existsSync(dataset.original_file_path)) {
       return { success: false, message: 'Source file not found on disk' }
     }
-    
+
     // Read from Excel file directly
     const workbook = XLSX.readFile(dataset.original_file_path)
     const firstSheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[firstSheetName]
-    
+
     // Parse as JSON rows
     const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
-    
+
     // Filter rows in memory
     const filteredRows = filterRowsInMemory(rows, activeFilters)
-    
+
     // Paginate in memory
     const paginated = filteredRows.slice(offset, offset + limit)
-    
+
     const parsedRows = paginated.map((r, idx) => ({
       id: offset + idx + 1,
       row_index: offset + idx,
       data: r
     }))
-    
+
     return {
       success: true,
       total: filteredRows.length,
@@ -197,33 +211,35 @@ export async function queryDatasetRows(datasetId, activeFilters, limit = 50, off
 export async function aggregateDataset(datasetId, activeFilters, aggregateConfig) {
   try {
     const db = getDbConnection()
-    const [datasetRows] = await db.execute('SELECT * FROM imported_datasets WHERE id = ?', [datasetId])
+    const [datasetRows] = await db.execute('SELECT * FROM imported_datasets WHERE id = ?', [
+      datasetId
+    ])
     const dataset = datasetRows[0]
     if (!dataset) return { success: false, message: 'Dataset not found' }
-    
+
     if (!existsSync(dataset.original_file_path)) {
       return { success: false, message: 'Source file not found on disk' }
     }
-    
+
     // Read Excel file directly
     const workbook = XLSX.readFile(dataset.original_file_path)
     const firstSheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[firstSheetName]
     const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
-    
+
     // Filter rows in memory
     const filteredRows = filterRowsInMemory(rows, activeFilters)
-    
+
     let sum_val = null
     let avg_val = null
     let min_val = null
     let max_val = null
     let parcel_range_count = null
-    
+
     if (aggregateConfig) {
       if (aggregateConfig.sum_column) {
         let sum = 0
-        filteredRows.forEach(r => {
+        filteredRows.forEach((r) => {
           sum += parseFloat(r[aggregateConfig.sum_column]) || 0
         })
         sum_val = sum
@@ -231,7 +247,7 @@ export async function aggregateDataset(datasetId, activeFilters, aggregateConfig
       if (aggregateConfig.avg_column) {
         let sum = 0
         let count = 0
-        filteredRows.forEach(r => {
+        filteredRows.forEach((r) => {
           const val = parseFloat(r[aggregateConfig.avg_column])
           if (!isNaN(val)) {
             sum += val
@@ -242,7 +258,7 @@ export async function aggregateDataset(datasetId, activeFilters, aggregateConfig
       }
       if (aggregateConfig.min_column) {
         let min = Infinity
-        filteredRows.forEach(r => {
+        filteredRows.forEach((r) => {
           const val = parseFloat(r[aggregateConfig.min_column])
           if (!isNaN(val) && val < min) min = val
         })
@@ -250,18 +266,22 @@ export async function aggregateDataset(datasetId, activeFilters, aggregateConfig
       }
       if (aggregateConfig.max_column) {
         let max = -Infinity
-        filteredRows.forEach(r => {
+        filteredRows.forEach((r) => {
           const val = parseFloat(r[aggregateConfig.max_column])
           if (!isNaN(val) && val > max) max = val
         })
         max_val = max === -Infinity ? 0 : max
       }
-      if (aggregateConfig.weight_column && aggregateConfig.weight_min !== undefined && aggregateConfig.weight_max !== undefined) {
+      if (
+        aggregateConfig.weight_column &&
+        aggregateConfig.weight_min !== undefined &&
+        aggregateConfig.weight_max !== undefined
+      ) {
         const minW = parseFloat(aggregateConfig.weight_min)
         const maxW = parseFloat(aggregateConfig.weight_max)
         if (!isNaN(minW) && !isNaN(maxW)) {
           let count = 0
-          filteredRows.forEach(r => {
+          filteredRows.forEach((r) => {
             const val = parseFloat(r[aggregateConfig.weight_column])
             if (!isNaN(val) && val >= minW && val <= maxW) {
               count++
@@ -271,7 +291,7 @@ export async function aggregateDataset(datasetId, activeFilters, aggregateConfig
         }
       }
     }
-    
+
     return {
       success: true,
       summary: {
@@ -305,7 +325,9 @@ export async function getFilterDefinitions() {
 export async function getActiveFilterDefinitions() {
   try {
     const db = getDbConnection()
-    const [rows] = await db.execute("SELECT * FROM filter_definitions WHERE status = 'Active' ORDER BY display_order ASC")
+    const [rows] = await db.execute(
+      "SELECT * FROM filter_definitions WHERE status = 'Active' ORDER BY display_order ASC"
+    )
     return rows
   } catch (error) {
     console.error('Get active filters error:', error)
@@ -317,18 +339,21 @@ export async function getActiveFilterDefinitions() {
 export async function addFilterDefinition(filter) {
   try {
     const db = getDbConnection()
-    const [result] = await db.execute(`
+    const [result] = await db.execute(
+      `
       INSERT INTO filter_definitions (filter_name, column_key, filter_type, options_json, display_order, status)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      filter.filter_name,
-      filter.column_key,
-      filter.filter_type,
-      filter.options_json || '[]',
-      filter.display_order || 0,
-      filter.status || 'Active'
-    ])
-    
+    `,
+      [
+        filter.filter_name,
+        filter.column_key,
+        filter.filter_type,
+        filter.options_json || '[]',
+        filter.display_order || 0,
+        filter.status || 'Active'
+      ]
+    )
+
     const newId = result.insertId
     await logAudit('FILTER_ADDED', 'filter_definitions', newId, filter)
     return { success: true, id: newId }
@@ -342,21 +367,24 @@ export async function addFilterDefinition(filter) {
 export async function updateFilterDefinition(id, filter) {
   try {
     const db = getDbConnection()
-    await db.execute(`
+    await db.execute(
+      `
       UPDATE filter_definitions
       SET filter_name = ?, column_key = ?, filter_type = ?, 
           options_json = ?, display_order = ?, status = ?
       WHERE id = ?
-    `, [
-      filter.filter_name,
-      filter.column_key,
-      filter.filter_type,
-      filter.options_json || '[]',
-      filter.display_order || 0,
-      filter.status || 'Active',
-      id
-    ])
-    
+    `,
+      [
+        filter.filter_name,
+        filter.column_key,
+        filter.filter_type,
+        filter.options_json || '[]',
+        filter.display_order || 0,
+        filter.status || 'Active',
+        id
+      ]
+    )
+
     await logAudit('FILTER_EDITED', 'filter_definitions', id, filter)
     return { success: true }
   } catch (error) {
@@ -372,7 +400,7 @@ export async function deleteFilterDefinition(id) {
     const [rows] = await db.execute('SELECT * FROM filter_definitions WHERE id = ?', [id])
     const filter = rows[0]
     if (!filter) return { success: false, message: 'Filter not found' }
-    
+
     await db.execute('DELETE FROM filter_definitions WHERE id = ?', [id])
     await logAudit('FILTER_DELETED', 'filter_definitions', id, filter)
     return { success: true }

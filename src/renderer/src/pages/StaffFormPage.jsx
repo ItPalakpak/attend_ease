@@ -107,7 +107,6 @@ export default function StaffFormPage() {
     setPreviewSrc(null)
   }
 
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
@@ -160,11 +159,7 @@ export default function StaffFormPage() {
             <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 overflow-hidden text-slate-400">
               {previewSrc ? (
                 <>
-                  <img
-                    src={previewSrc}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={previewSrc} alt="Preview" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={handleClearPhoto}
@@ -176,7 +171,9 @@ export default function StaffFormPage() {
               ) : (
                 <div className="flex flex-col items-center gap-1 text-center p-2">
                   <ImageIcon size={24} className="stroke-1" />
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">No Photo</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                    No Photo
+                  </span>
                 </div>
               )}
             </div>
@@ -201,7 +198,6 @@ export default function StaffFormPage() {
             </div>
           </div>
         </div>
-
 
         {/* Info Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -396,7 +392,9 @@ export default function StaffFormPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400">Emergency Contact Number</label>
+              <label className="text-xs font-semibold text-slate-400">
+                Emergency Contact Number
+              </label>
               <input
                 type="text"
                 name="emergency_contact_number"

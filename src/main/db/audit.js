@@ -4,10 +4,13 @@ import { getDbConnection } from './connection.js'
 export async function logAudit(action, entityType, entityId, details, performedBy = 'Admin') {
   try {
     const db = getDbConnection()
-    await db.execute(`
+    await db.execute(
+      `
       INSERT INTO audit_logs (action, entity_type, entity_id, details, performed_by)
       VALUES (?, ?, ?, ?, ?)
-    `, [action, entityType, entityId, JSON.stringify(details), performedBy])
+    `,
+      [action, entityType, entityId, JSON.stringify(details), performedBy]
+    )
   } catch (err) {
     console.error('Failed to log audit event:', err)
   }

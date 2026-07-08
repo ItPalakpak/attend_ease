@@ -3,12 +3,16 @@ import { Plus, Search, Edit2, Trash2, Building } from 'lucide-react'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import StatusBadge from '../components/ui/StatusBadge'
+import Pagination from '../components/ui/Pagination'
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState([])
   const [filteredDepartments, setFilteredDepartments] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -47,12 +51,17 @@ export default function DepartmentsPage() {
       setFilteredDepartments(
         departments.filter(
           (d) =>
-            d.department_name.toLowerCase().includes(q) ||
-            d.description.toLowerCase().includes(q)
+            d.department_name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q)
         )
       )
     }
+    setCurrentPage(1)
   }, [departments, searchQuery])
+
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedDepartments = filteredDepartments.slice(startIndex, endIndex)
 
   const handleOpenAddModal = () => {
     setModalMode('add')
@@ -136,7 +145,7 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Departments Table */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg flex flex-col overflow-hidden">
         {isLoading ? (
           <div className="flex h-40 items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
@@ -159,10 +168,14 @@ export default function DepartmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
-                {filteredDepartments.map((dept) => (
+                {paginatedDepartments.map((dept) => (
                   <tr key={dept.id} className="transition-all hover:bg-slate-50">
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{dept.department_name}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-xs truncate">{dept.description || 'No description'}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      {dept.department_name}
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-500 max-w-xs truncate">
+                      {dept.description || 'No description'}
+                    </td>
                     <td className="py-3.5 px-4">
                       <StatusBadge status={dept.status} />
                     </td>
@@ -190,6 +203,16 @@ export default function DepartmentsPage() {
               </tbody>
             </table>
           </div>
+        )}
+
+        {filteredDepartments.length > 0 && !isLoading && (
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredDepartments.length}
+            itemsPerPage={itemsPerPage}
+            onChangePage={setCurrentPage}
+            onChangeItemsPerPage={setItemsPerPage}
+          />
         )}
       </div>
 

@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, Download, FileText, Table, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { Download, FileText, Table, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { DateRangePicker } from '../shared/DateRangePicker'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
+import Pagination from '../components/ui/Pagination'
 
 export default function ReportsPage() {
-  const [reportType, setReportType] = useState('daily') // 'daily' or 'monthly'
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [dateFrom, setDateFrom] = useState(() => new Date().toISOString().split('T')[0])
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0])
 
   const [records, setRecords] = useState([])
   const [summary, setSummary] = useState({ present: 0, late: 0, absent: 0, total: 0 })
   const [isLoading, setIsLoading] = useState(false)
   const [settings, setSettings] = useState({ org_name: 'AttendEase' })
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(25)
 
   // Fetch settings once
   useEffect(() => {
@@ -32,25 +33,16 @@ export default function ReportsPage() {
   const generateReport = async () => {
     setIsLoading(true)
     try {
-      let data = []
-      if (reportType === 'daily') {
-        data = await window.api.getDailyAttendance(selectedDate)
-      } else {
-        // Monthly report: query range
-        const [year, month] = selectedMonth.split('-')
-        const startDate = `${year}-${month}-01`
-        const lastDay = new Date(Number(year), Number(month), 0).getDate()
-        const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`
-        data = await window.api.getAttendanceRange({ startDate, endDate })
-      }
+      const data = await window.api.getAttendanceRange({ startDate: dateFrom, endDate: dateTo })
 
       setRecords(data || [])
+      setCurrentPage(1)
 
       // Calculate Summary
       let present = 0
       let late = 0
       let absent = 0
-      data.forEach((r) => {
+      ;(data || []).forEach((r) => {
         if (r.status === 'Present') present++
         else if (r.status === 'Late') late++
         else if (r.status === 'Absent') absent++
@@ -60,7 +52,7 @@ export default function ReportsPage() {
         present,
         late,
         absent,
-        total: data.length
+        total: (data || []).length
       })
     } catch (err) {
       console.error('Failed to generate report data:', err)
@@ -71,41 +63,27 @@ export default function ReportsPage() {
 
   useEffect(() => {
     generateReport()
-  }, [reportType, selectedDate, selectedMonth])
+  }, [dateFrom, dateTo])
 
   // Helper: Convert records to exportable format
   const getExportData = () => {
-    return records.map((r) => {
-      if (reportType === 'daily') {
-        return {
-          'Staff ID': r.formatted_id || r.staff_id,
-          'Employee Name': `${r.first_name} ${r.last_name}`,
-          'Department': r.department_name || 'N/A',
-          'Position': r.role_name || 'N/A',
-          'Time In': r.time_in || '--:--',
-          'Time Out': r.time_out || '--:--',
-          'Status': r.status
-        }
-      } else {
-        return {
-          'Date': r.date,
-          'Staff ID': r.formatted_id || r.staff_id,
-          'Employee Name': `${r.first_name} ${r.last_name}`,
-          'Department': r.department_name || 'N/A',
-          'Position': r.role_name || 'N/A',
-          'Time In': r.time_in || '--:--',
-          'Time Out': r.time_out || '--:--',
-          'Status': r.status
-        }
-      }
-    })
+    return records.map((r) => ({
+      Date: r.date,
+      'Staff ID': r.formatted_id || r.staff_id,
+      'Employee Name': `${r.first_name} ${r.last_name}`,
+      Department: r.department_name || 'N/A',
+      Position: r.role_name || 'N/A',
+      'Time In': r.time_in || '--:--',
+      'Time Out': r.time_out || '--:--',
+      Status: r.status
+    }))
   }
 
   const handleExportExcel = async () => {
     if (records.length === 0) return
 
     try {
-      const defaultFilename = `${reportType}_report_${reportType === 'daily' ? selectedDate : selectedMonth}.xlsx`
+      const defaultFilename = `attendance_report_${dateFrom}_to_${dateTo}.xlsx`
       const fileDialogRes = await window.api.saveFileDialog({
         title: 'Export Excel Report',
         defaultPath: defaultFilename,
@@ -123,8 +101,6 @@ export default function ReportsPage() {
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Attendance')
 
-      // Since we don't have fs in renderer, we can write via browser-hack OR we can convert sheet to binary and download.
-      // Wait, in Electron, standard file download trigger works beautifully:
       XLSX.writeFile(wb, targetPath)
       alert(`Report exported successfully to:\n${targetPath}`)
     } catch (err) {
@@ -137,7 +113,7 @@ export default function ReportsPage() {
     if (records.length === 0) return
 
     try {
-      const defaultFilename = `${reportType}_report_${reportType === 'daily' ? selectedDate : selectedMonth}.csv`
+      const defaultFilename = `attendance_report_${dateFrom}_to_${dateTo}.csv`
       const fileDialogRes = await window.api.saveFileDialog({
         title: 'Export CSV Report',
         defaultPath: defaultFilename,
@@ -170,7 +146,7 @@ export default function ReportsPage() {
     if (records.length === 0) return
 
     try {
-      const defaultFilename = `${reportType}_report_${reportType === 'daily' ? selectedDate : selectedMonth}.pdf`
+      const defaultFilename = `attendance_report_${dateFrom}_to_${dateTo}.pdf`
       const fileDialogRes = await window.api.saveFileDialog({
         title: 'Export PDF Report',
         defaultPath: defaultFilename,
@@ -184,16 +160,16 @@ export default function ReportsPage() {
 
       // Create PDF
       const doc = new jsPDF()
-      
+
       // Title Section
       doc.setFont('Helvetica', 'bold')
       doc.setFontSize(18)
       doc.text(settings.org_name.toUpperCase(), 14, 20)
-      
+
       doc.setFontSize(12)
       doc.setFont('Helvetica', 'normal')
-      doc.text(`Attendance Report (${reportType === 'daily' ? 'Daily' : 'Monthly'})`, 14, 28)
-      doc.text(`Period: ${reportType === 'daily' ? selectedDate : selectedMonth}`, 14, 34)
+      doc.text('Attendance Report', 14, 28)
+      doc.text(`Period: ${dateFrom} to ${dateTo}`, 14, 34)
       doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 40)
 
       // Divider
@@ -216,17 +192,14 @@ export default function ReportsPage() {
       let y = 74
       doc.setFont('Helvetica', 'bold')
       doc.text('Name', 14, 70)
-      doc.text('ID', 70, 70)
-      doc.text('Position', 100, 70)
-      if (reportType === 'monthly') {
-        doc.text('Date', 145, 70)
-      } else {
-        doc.text('In / Out', 145, 70)
-      }
-      doc.text('Status', 180, 70)
+      doc.text('ID', 60, 70)
+      doc.text('Position', 90, 70)
+      doc.text('Date', 130, 70)
+      doc.text('In / Out', 158, 70)
+      doc.text('Status', 185, 70)
 
       doc.setFont('Helvetica', 'normal')
-      records.forEach((r, idx) => {
+      records.forEach((r) => {
         // Add page if needed
         if (y > 280) {
           doc.addPage()
@@ -234,15 +207,12 @@ export default function ReportsPage() {
         }
 
         const name = `${r.first_name} ${r.last_name}`
-        doc.text(name.substring(0, 26), 14, y)
-        doc.text(r.formatted_id || r.staff_id, 70, y)
-        doc.text((r.role_name || '').substring(0, 20), 100, y)
-        if (reportType === 'monthly') {
-          doc.text(r.date || '', 145, y)
-        } else {
-          doc.text(`${r.time_in || '--:--'} / ${r.time_out || '--:--'}`, 145, y)
-        }
-        doc.text(r.status, 180, y)
+        doc.text(name.substring(0, 22), 14, y)
+        doc.text((r.formatted_id || r.staff_id).substring(0, 14), 60, y)
+        doc.text((r.role_name || '').substring(0, 18), 90, y)
+        doc.text(r.date || '', 130, y)
+        doc.text(`${r.time_in || '--:--'} / ${r.time_out || '--:--'}`, 158, y)
+        doc.text(r.status, 185, y)
 
         y += 7
       })
@@ -256,48 +226,24 @@ export default function ReportsPage() {
     }
   }
 
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedRecords = records.slice(startIndex, endIndex)
+
   return (
-    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Selectors Panel */}
       <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end justify-between">
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Type */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Report Type</label>
-              <select
-                value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                className="w-40 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-              >
-                <option value="daily">Daily Report</option>
-                <option value="monthly">Monthly Summary</option>
-              </select>
-            </div>
-
-            {/* Date Picker */}
-            {reportType === 'daily' ? (
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Report Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-                />
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Report Month</label>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
-                />
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+          <DateRangePicker
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onChange={({ dateFrom: from, dateTo: to }) => {
+              setDateFrom(from)
+              setDateTo(to)
+            }}
+          />
 
           {/* Export Actions */}
           {records.length > 0 && (
@@ -311,7 +257,7 @@ export default function ReportsPage() {
               </button>
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-705 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
               >
                 <Download size={14} />
                 <span>CSV</span>
@@ -335,7 +281,9 @@ export default function ReportsPage() {
             <Table size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Entries</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Total Entries
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.total}</p>
           </div>
         </div>
@@ -345,7 +293,9 @@ export default function ReportsPage() {
             <CheckCircle size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Present Today</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Present
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.present}</p>
           </div>
         </div>
@@ -355,7 +305,9 @@ export default function ReportsPage() {
             <Clock size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Late Entries</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Late Entries
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.late}</p>
           </div>
         </div>
@@ -365,7 +317,9 @@ export default function ReportsPage() {
             <XCircle size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Absent Entries</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Absent Entries
+            </p>
             <p className="text-lg font-bold text-slate-800 mt-0.5">{summary.absent}</p>
           </div>
         </div>
@@ -373,7 +327,9 @@ export default function ReportsPage() {
 
       {/* Preview Table */}
       <div className="flex-1 min-h-0 rounded-2xl border border-slate-100 bg-white p-5 shadow-lg flex flex-col overflow-hidden">
-        <h3 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 shrink-0">Report Preview</h3>
+        <h3 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3 shrink-0">
+          Report Preview
+        </h3>
 
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
@@ -385,52 +341,62 @@ export default function ReportsPage() {
             <p className="mt-2 text-sm">No records to preview for selected period.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
-                  {reportType === 'monthly' && <th className="py-2.5 px-3 bg-white">Date</th>}
-                  <th className="py-2.5 px-3 bg-white">Staff ID</th>
-                  <th className="py-2.5 px-3 bg-white">Name</th>
-                  <th className="py-2.5 px-3 bg-white">Department</th>
-                  <th className="py-2.5 px-3 bg-white">Position</th>
-                  <th className="py-2.5 px-3 bg-white">Time In</th>
-                  <th className="py-2.5 px-3 bg-white">Time Out</th>
-                  <th className="py-2.5 px-3 bg-white">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-slate-700">
-                {records.map((r, index) => (
-                  <tr key={index} className="hover:bg-slate-50/50 transition-all">
-                    {reportType === 'monthly' && (
-                      <td className="py-2 px-3 font-semibold text-slate-600">{r.date}</td>
-                    )}
-                    <td className="py-2 px-3 font-mono text-[10px] text-slate-500">
-                      {r.formatted_id || r.staff_id}
-                    </td>
-                    <td className="py-2 px-3 font-bold text-slate-800">
-                      {r.first_name} {r.last_name}
-                    </td>
-                    <td className="py-2 px-3 text-slate-500">{r.department_name}</td>
-                    <td className="py-2 px-3 text-slate-500">{r.role_name}</td>
-                    <td className="py-2 px-3 font-mono text-[10px]">{r.time_in || '--:--'}</td>
-                    <td className="py-2 px-3 font-mono text-[10px]">{r.time_out || '--:--'}</td>
-                    <td className="py-2 px-3">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                        r.status === 'Present'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                          : r.status === 'Late'
-                          ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                          : 'bg-rose-50 text-rose-700 border border-rose-100'
-                      }`}>
-                        {r.status}
-                      </span>
-                    </td>
+          <>
+            <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                    <th className="py-2.5 px-3 bg-white">Date</th>
+                    <th className="py-2.5 px-3 bg-white">Staff ID</th>
+                    <th className="py-2.5 px-3 bg-white">Name</th>
+                    <th className="py-2.5 px-3 bg-white">Department</th>
+                    <th className="py-2.5 px-3 bg-white">Position</th>
+                    <th className="py-2.5 px-3 bg-white">Time In</th>
+                    <th className="py-2.5 px-3 bg-white">Time Out</th>
+                    <th className="py-2.5 px-3 bg-white">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-slate-700">
+                  {paginatedRecords.map((r, index) => (
+                    <tr key={index} className="hover:bg-slate-50/50 transition-all">
+                      <td className="py-2 px-3 font-semibold text-slate-650">{r.date}</td>
+                      <td className="py-2 px-3 font-mono text-[10px] text-slate-500">
+                        {r.formatted_id || r.staff_id}
+                      </td>
+                      <td className="py-2 px-3 font-bold text-slate-800">
+                        {r.first_name} {r.last_name}
+                      </td>
+                      <td className="py-2 px-3 text-slate-500">{r.department_name}</td>
+                      <td className="py-2 px-3 text-slate-500">{r.role_name}</td>
+                      <td className="py-2 px-3 font-mono text-[10px]">{r.time_in || '--:--'}</td>
+                      <td className="py-2 px-3 font-mono text-[10px]">{r.time_out || '--:--'}</td>
+                      <td className="py-2 px-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                            r.status === 'Present'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              : r.status === 'Late'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                                : 'bg-rose-50 text-rose-700 border border-rose-100'
+                          }`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalItems={records.length}
+              itemsPerPage={itemsPerPage}
+              onChangePage={setCurrentPage}
+              onChangeItemsPerPage={setItemsPerPage}
+            />
+          </>
         )}
       </div>
     </div>

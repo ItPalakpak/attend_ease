@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Eye, Edit2, Trash2, CreditCard, Users2, ShieldAlert } from 'lucide-react'
 import StatusBadge from '../components/ui/StatusBadge'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import Pagination from '../components/ui/Pagination'
 
 export default function StaffListPage() {
   const [staffList, setStaffList] = useState([])
@@ -12,6 +13,9 @@ export default function StaffListPage() {
   const [selectedDept, setSelectedDept] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // ConfirmDialog State
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
@@ -63,7 +67,13 @@ export default function StaffListPage() {
     }
 
     setFilteredStaff(result)
+    setCurrentPage(1) // Reset to first page when filtering updates
   }, [staffList, searchQuery, selectedDept, selectedStatus])
+
+  // Pagination Math
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedStaff = filteredStaff.slice(startIndex, endIndex)
 
   const handleOpenDeleteConfirm = (staff) => {
     setStaffToDelete(staff)
@@ -86,7 +96,7 @@ export default function StaffListPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-175px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
       {/* Controls panel */}
       <div className="shrink-0 flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
         {/* Search */}
@@ -143,93 +153,108 @@ export default function StaffListPage() {
             <p className="mt-2 text-sm">No staff records found matching the criteria.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
-                  <th className="py-2.5 px-3 bg-white">Staff</th>
-                  <th className="py-2.5 px-3 bg-white">Staff ID</th>
-                  <th className="py-2.5 px-3 bg-white">Position</th>
-                  <th className="py-2.5 px-3 bg-white">Status</th>
-                  <th className="py-2.5 px-3 bg-white text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-slate-700">
-                {filteredStaff.map((staff) => (
-                  <tr key={staff.id} className="group transition-all hover:bg-slate-50/50">
-                    <td className="py-2 px-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-100">
-                          {staff.photo_path ? (
-                            <img
-                              src={`media:///${staff.photo_path.replace(/\\/g, '/')}`}
-                              alt={staff.first_name}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                e.target.style.display = 'none'
-                                e.target.nextSibling.style.display = 'flex'
-                              }}
-                            />
-                          ) : null}
-                          <div className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-[10px] font-bold text-slate-650 ${staff.photo_path ? 'hidden' : ''}`}>
-                            {staff.first_name?.[0]}{staff.last_name?.[0]}
+          <>
+            <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px] sticky top-0 bg-white z-10 shadow-sm">
+                    <th className="py-2.5 px-3 bg-white">Staff</th>
+                    <th className="py-2.5 px-3 bg-white">Staff ID</th>
+                    <th className="py-2.5 px-3 bg-white">Position</th>
+                    <th className="py-2.5 px-3 bg-white">Status</th>
+                    <th className="py-2.5 px-3 bg-white text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-slate-700">
+                  {paginatedStaff.map((staff) => (
+                    <tr key={staff.id} className="group transition-all hover:bg-slate-50/50">
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-100">
+                            {staff.photo_path ? (
+                              <img
+                                src={`media:///${staff.photo_path.replace(/\\/g, '/')}`}
+                                alt={staff.first_name}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none'
+                                  e.target.nextSibling.style.display = 'flex'
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`absolute inset-0 flex items-center justify-center bg-slate-100 text-[10px] font-bold text-slate-650 ${staff.photo_path ? 'hidden' : ''}`}
+                            >
+                              {staff.first_name?.[0]}
+                              {staff.last_name?.[0]}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-800 group-hover:text-sky-600 transition">
+                              {staff.first_name} {staff.last_name}
+                            </p>
+                            <p className="text-[9px] text-slate-400">
+                              Emp No: {staff.employee_number || 'N/A'}
+                            </p>
                           </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-800 group-hover:text-sky-600 transition">
-                            {staff.first_name} {staff.last_name}
-                          </p>
-                          <p className="text-[9px] text-slate-400">
-                            Emp No: {staff.employee_number || 'N/A'}
-                          </p>
+                      </td>
+                      <td className="py-2 px-3 font-mono text-[10px] font-semibold text-slate-600">
+                        {staff.formatted_id || staff.staff_id}
+                      </td>
+                      <td className="py-2 px-3 text-slate-500 font-medium">
+                        {staff.role_name || 'Unassigned'}
+                      </td>
+                      <td className="py-2 px-3">
+                        <StatusBadge status={staff.employment_status} />
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => navigate(`/staff/${staff.id}`)}
+                            data-tooltip="View Profile"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
+                          >
+                            <Eye size={14} />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/staff/edit/${staff.id}`)}
+                            data-tooltip="Edit Staff"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/id-cards/${staff.id}`)}
+                            data-tooltip="ID Card"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
+                          >
+                            <CreditCard size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleOpenDeleteConfirm(staff)}
+                            data-tooltip="Delete Staff"
+                            data-tooltip-pos="left"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-2 px-3 font-mono text-[10px] font-semibold text-slate-600">
-                      {staff.formatted_id || staff.staff_id}
-                    </td>
-                    <td className="py-2 px-3 text-slate-500 font-medium">{staff.role_name || 'Unassigned'}</td>
-                    <td className="py-2 px-3">
-                      <StatusBadge status={staff.employment_status} />
-                    </td>
-                    <td className="py-2 px-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => navigate(`/staff/${staff.id}`)}
-                          data-tooltip="View Profile"
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
-                        >
-                          <Eye size={14} />
-                        </button>
-                        <button
-                          onClick={() => navigate(`/staff/edit/${staff.id}`)}
-                          data-tooltip="Edit Staff"
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => navigate(`/id-cards/${staff.id}`)}
-                          data-tooltip="ID Card"
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 transition"
-                        >
-                          <CreditCard size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleOpenDeleteConfirm(staff)}
-                          data-tooltip="Delete Staff"
-                          data-tooltip-pos="left"
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredStaff.length}
+              itemsPerPage={itemsPerPage}
+              onChangePage={setCurrentPage}
+              onChangeItemsPerPage={setItemsPerPage}
+            />
+          </>
         )}
       </div>
 

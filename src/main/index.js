@@ -21,8 +21,6 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-
-
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -30,12 +28,22 @@ function createWindow() {
     height: 800,
     show: false,
     autoHideMenuBar: true,
+    ...(process.platform === 'win32' ? { frame: false } : { titleBarStyle: 'hidden' }),
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       webSecurity: false
     }
+  })
+
+  // Broadcast window maximized state to renderer
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send('window:maximized-state', true)
+  })
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send('window:maximized-state', false)
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -84,6 +92,33 @@ app.whenReady().then(async () => {
 
   // Register all IPC database and dialog handlers
   registerIpcHandlers()
+
+  // Window control IPC handlers
+  ipcMain.on('window:minimize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) win.minimize()
+  })
+
+  ipcMain.on('window:maximize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+      if (win.isMaximized()) {
+        win.unmaximize()
+      } else {
+        win.maximize()
+      }
+    }
+  })
+
+  ipcMain.on('window:close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) win.close()
+  })
+
+  ipcMain.handle('window:is-maximized', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    return win ? win.isMaximized() : false
+  })
 
   // Register the custom media protocol handler
   protocol.handle('media', (request) => {

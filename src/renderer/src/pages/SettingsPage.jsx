@@ -77,7 +77,15 @@ export default function SettingsPage() {
               }
             } catch {
               // Comma separated day names string fallback
-              const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+              const dayNames = [
+                'Sunday',
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday'
+              ]
               parsedWorkingDays = res.working_days
                 .split(',')
                 .map((day) => dayNames.indexOf(day.trim()))
@@ -286,8 +294,6 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-
-
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         {/* Navigation Sidebar */}
         <div className="md:col-span-1 rounded-2xl border border-slate-100 bg-white p-4 shadow-md h-fit space-y-1">
@@ -329,26 +335,37 @@ export default function SettingsPage() {
         {/* Form Area */}
         <div className="md:col-span-3 space-y-6">
           {activeTab === 'general' && (
-            <form onSubmit={handleSettingsSave} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-6">
+            <form
+              onSubmit={handleSettingsSave}
+              className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-6"
+            >
               <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                 <Building size={18} className="text-sky-500" />
                 <span>Organization Profile & Rules</span>
               </h3>
 
               {settingsStatus.message && (
-                <div className={`flex items-center gap-2 rounded-xl border p-4 text-sm ${
-                  settingsStatus.type === 'success'
-                    ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-600'
-                    : 'border-red-500/20 bg-red-50/50 text-red-650'
-                }`}>
-                  {settingsStatus.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                <div
+                  className={`flex items-center gap-2 rounded-xl border p-4 text-sm ${
+                    settingsStatus.type === 'success'
+                      ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-600'
+                      : 'border-red-500/20 bg-red-50/50 text-red-650'
+                  }`}
+                >
+                  {settingsStatus.type === 'success' ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <AlertCircle size={18} />
+                  )}
                   <span>{settingsStatus.message}</span>
                 </div>
               )}
 
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Organization Name</label>
+                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                    Organization Name
+                  </label>
                   <input
                     type="text"
                     value={appSettings.org_name}
@@ -358,10 +375,14 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Organization Address</label>
+                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                    Organization Address
+                  </label>
                   <textarea
                     value={appSettings.org_address}
-                    onChange={(e) => setAppSettings({ ...appSettings, org_address: e.target.value })}
+                    onChange={(e) =>
+                      setAppSettings({ ...appSettings, org_address: e.target.value })
+                    }
                     className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     rows={2}
                   />
@@ -377,48 +398,68 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Work Start</label>
+                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                      Work Start
+                    </label>
                     <input
                       type="time"
                       value={appSettings.work_start}
-                      onChange={(e) => setAppSettings({ ...appSettings, work_start: e.target.value })}
+                      onChange={(e) =>
+                        setAppSettings({ ...appSettings, work_start: e.target.value })
+                      }
                       className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Present Cutoff</label>
+                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                      Present Cutoff
+                    </label>
                     <input
                       type="time"
                       value={appSettings.present_cutoff}
-                      onChange={(e) => setAppSettings({ ...appSettings, present_cutoff: e.target.value })}
+                      onChange={(e) =>
+                        setAppSettings({ ...appSettings, present_cutoff: e.target.value })
+                      }
                       className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Late Cutoff</label>
+                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                      Late Cutoff
+                    </label>
                     <input
                       type="time"
                       value={appSettings.late_cutoff}
-                      onChange={(e) => setAppSettings({ ...appSettings, late_cutoff: e.target.value })}
+                      onChange={(e) =>
+                        setAppSettings({ ...appSettings, late_cutoff: e.target.value })
+                      }
                       className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-400">
-                  Logs before "Present Cutoff" are marked Present. Logs after that but before "Late Cutoff" are marked Late. Logs after the late cutoff are marked Absent.
+                  Logs before "Present Cutoff" are marked Present. Logs after that but before "Late
+                  Cutoff" are marked Late. Logs after the late cutoff are marked Absent.
                 </p>
               </div>
 
               {/* Working days */}
               <div className="border-t border-slate-50 pt-5 space-y-3">
-                <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Active Working Days</label>
+                <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                  Active Working Days
+                </label>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {daysOfWeek.map((day) => {
-                    const isChecked = Array.isArray(appSettings.working_days) && appSettings.working_days.includes(day.value)
+                    const isChecked =
+                      Array.isArray(appSettings.working_days) &&
+                      appSettings.working_days.includes(day.value)
                     return (
-                      <label key={day.value} className="flex items-center gap-2 cursor-pointer select-none rounded-lg border border-slate-100 bg-slate-50 p-2.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100">
+                      <label
+                        key={day.value}
+                        className="flex items-center gap-2 cursor-pointer select-none rounded-lg border border-slate-100 bg-slate-50 p-2.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                      >
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -445,54 +486,75 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'security' && (
-            <form onSubmit={handlePasswordSave} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-6">
+            <form
+              onSubmit={handlePasswordSave}
+              className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg space-y-6"
+            >
               <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                 <Lock size={18} className="text-sky-500" />
                 <span>Change Admin Password</span>
               </h3>
 
               {passwordStatus.message && (
-                <div className={`flex items-center gap-2 rounded-xl border p-4 text-sm ${
-                  passwordStatus.type === 'success'
-                    ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-600'
-                    : 'border-red-500/20 bg-red-50/50 text-red-650'
-                }`}>
-                  {passwordStatus.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                <div
+                  className={`flex items-center gap-2 rounded-xl border p-4 text-sm ${
+                    passwordStatus.type === 'success'
+                      ? 'border-emerald-500/20 bg-emerald-50/50 text-emerald-600'
+                      : 'border-red-500/20 bg-red-50/50 text-red-650'
+                  }`}
+                >
+                  {passwordStatus.type === 'success' ? (
+                    <CheckCircle2 size={18} />
+                  ) : (
+                    <AlertCircle size={18} />
+                  )}
                   <span>{passwordStatus.message}</span>
                 </div>
               )}
 
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Current Password</label>
+                  <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                    Current Password
+                  </label>
                   <input
                     type="password"
                     required
                     value={passwordForm.oldPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({ ...passwordForm, oldPassword: e.target.value })
+                    }
                     className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">New Password</label>
+                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                      New Password
+                    </label>
                     <input
                       type="password"
                       required
                       value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      onChange={(e) =>
+                        setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                      }
                       className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">Confirm New Password</label>
+                    <label className="text-xs font-semibold text-slate-450 uppercase tracking-wide">
+                      Confirm New Password
+                    </label>
                     <input
                       type="password"
                       required
                       value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                      }
                       className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                     />
                   </div>
@@ -528,7 +590,10 @@ export default function SettingsPage() {
               </div>
 
               <p className="text-xs text-slate-500 leading-relaxed">
-                Configure filter inputs that appear on the <strong>Analytics</strong> dashboard when searching through imported spreadsheets (Excel/CSV). The <strong>Column Header Key</strong> must match the column header in the Excel file exactly (case-sensitive) to correctly parse data.
+                Configure filter inputs that appear on the <strong>Analytics</strong> dashboard when
+                searching through imported spreadsheets (Excel/CSV). The{' '}
+                <strong>Column Header Key</strong> must match the column header in the Excel file
+                exactly (case-sensitive) to correctly parse data.
               </p>
 
               {filters.length === 0 ? (
@@ -552,8 +617,12 @@ export default function SettingsPage() {
                     <tbody className="divide-y divide-slate-50 text-slate-700">
                       {filters.map((filter) => (
                         <tr key={filter.id} className="hover:bg-slate-50 transition-all">
-                          <td className="py-2 px-3 font-mono font-bold text-slate-400">{filter.display_order}</td>
-                          <td className="py-2 px-3 font-semibold text-slate-800">{filter.filter_name}</td>
+                          <td className="py-2 px-3 font-mono font-bold text-slate-400">
+                            {filter.display_order}
+                          </td>
+                          <td className="py-2 px-3 font-semibold text-slate-800">
+                            {filter.filter_name}
+                          </td>
                           <td className="py-2 px-3 font-mono text-sky-600">{filter.column_key}</td>
                           <td className="py-2 px-3">
                             <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 uppercase">
@@ -604,7 +673,9 @@ export default function SettingsPage() {
                 type="text"
                 required
                 value={filterFormData.filter_name}
-                onChange={(e) => setFilterFormData({ ...filterFormData, filter_name: e.target.value })}
+                onChange={(e) =>
+                  setFilterFormData({ ...filterFormData, filter_name: e.target.value })
+                }
                 className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 placeholder="e.g. Total Weight"
               />
@@ -616,7 +687,9 @@ export default function SettingsPage() {
                 type="text"
                 required
                 value={filterFormData.column_key}
-                onChange={(e) => setFilterFormData({ ...filterFormData, column_key: e.target.value })}
+                onChange={(e) =>
+                  setFilterFormData({ ...filterFormData, column_key: e.target.value })
+                }
                 className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 placeholder="e.g. weight_kg"
               />
@@ -628,7 +701,9 @@ export default function SettingsPage() {
               <label className="text-xs font-semibold text-slate-600">Filter Type</label>
               <select
                 value={filterFormData.filter_type}
-                onChange={(e) => setFilterFormData({ ...filterFormData, filter_type: e.target.value })}
+                onChange={(e) =>
+                  setFilterFormData({ ...filterFormData, filter_type: e.target.value })
+                }
                 className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
               >
                 <option value="contains">Contains (Text search)</option>
@@ -644,7 +719,9 @@ export default function SettingsPage() {
               <input
                 type="number"
                 value={filterFormData.display_order}
-                onChange={(e) => setFilterFormData({ ...filterFormData, display_order: e.target.value })}
+                onChange={(e) =>
+                  setFilterFormData({ ...filterFormData, display_order: e.target.value })
+                }
                 className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
               />
             </div>
@@ -652,10 +729,14 @@ export default function SettingsPage() {
 
           {filterFormData.filter_type === 'dropdown' && (
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Dropdown Options (one per line)</label>
+              <label className="text-xs font-semibold text-slate-600">
+                Dropdown Options (one per line)
+              </label>
               <textarea
                 value={filterFormData.options_raw}
-                onChange={(e) => setFilterFormData({ ...filterFormData, options_raw: e.target.value })}
+                onChange={(e) =>
+                  setFilterFormData({ ...filterFormData, options_raw: e.target.value })
+                }
                 placeholder="Option A&#10;Option B&#10;Option C"
                 className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 rows={4}

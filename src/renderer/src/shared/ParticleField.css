@@ -1,0 +1,13 @@
+/* shared/components/ParticleField/ParticleField.css
+   The canvas is portalled into document.body so it is never clipped
+   by overflow:hidden on any ancestor element.
+*/
+
+.particle-field-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw; /* CSS visual size; JS attributes set actual resolution */
+  height: 100vh;
+  pointer-events: none; /* Clicks/hovers pass through to content below */
+  z-index: 1; /* Above page bg (z-index:auto), below page content (z-index:2) */
+}

@@ -3,20 +3,39 @@ import { readFileSync, existsSync } from 'fs'
 import { extname } from 'path'
 import { verifyLogin, changePassword } from './db/auth.js'
 import { getRoles, getActiveRoles, addRole, updateRole, deleteRole } from './db/roles.js'
-import { getDepartments, getActiveDepartments, addDepartment, updateDepartment, deleteDepartment } from './db/departments.js'
-import { getStaffList, getStaffById, addStaff, updateStaff, deleteStaff, regenerateQRCode } from './db/staff.js'
-import { recordClockIn, recordClockOut, getDailyAttendance, getAttendanceRange, getDashboardStats } from './db/attendance.js'
+import {
+  getDepartments,
+  getActiveDepartments,
+  addDepartment,
+  updateDepartment,
+  deleteDepartment
+} from './db/departments.js'
+import {
+  getStaffList,
+  getStaffById,
+  addStaff,
+  updateStaff,
+  deleteStaff,
+  regenerateQRCode
+} from './db/staff.js'
+import {
+  recordClockIn,
+  recordClockOut,
+  getDailyAttendance,
+  getAttendanceRange,
+  getDashboardStats
+} from './db/attendance.js'
 import { getSettings, updateSettings } from './db/settings.js'
 import { logAudit, getAuditLogs } from './db/audit.js'
-import { 
-  importDataset, 
-  getDatasets, 
-  deleteDataset, 
-  queryDatasetRows, 
-  aggregateDataset, 
-  getFilterDefinitions, 
-  getActiveFilterDefinitions, 
-  addFilterDefinition, 
+import {
+  importDataset,
+  getDatasets,
+  deleteDataset,
+  queryDatasetRows,
+  aggregateDataset,
+  getFilterDefinitions,
+  getActiveFilterDefinitions,
+  addFilterDefinition,
   deleteFilterDefinition
 } from './db/dataimport.js'
 import { createBackup, restoreBackup } from './db/backup.js'
@@ -44,7 +63,13 @@ export function registerIpcHandlers() {
     try {
       if (!filePath || !existsSync(filePath)) return null
       const ext = extname(filePath).toLowerCase().replace('.', '')
-      const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' }
+      const mimeMap = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        webp: 'image/webp',
+        gif: 'image/gif'
+      }
       const mime = mimeMap[ext] || 'image/jpeg'
       const data = readFileSync(filePath)
       return `data:${mime};base64,${data.toString('base64')}`
@@ -173,13 +198,19 @@ export function registerIpcHandlers() {
     return deleteDataset(id)
   })
 
-  ipcMain.handle('dataimport:query-rows', async (event, { datasetId, activeFilters, limit, offset }) => {
-    return queryDatasetRows(datasetId, activeFilters, limit, offset)
-  })
+  ipcMain.handle(
+    'dataimport:query-rows',
+    async (event, { datasetId, activeFilters, limit, offset }) => {
+      return queryDatasetRows(datasetId, activeFilters, limit, offset)
+    }
+  )
 
-  ipcMain.handle('dataimport:aggregate', async (event, { datasetId, activeFilters, aggregateConfig }) => {
-    return aggregateDataset(datasetId, activeFilters, aggregateConfig)
-  })
+  ipcMain.handle(
+    'dataimport:aggregate',
+    async (event, { datasetId, activeFilters, aggregateConfig }) => {
+      return aggregateDataset(datasetId, activeFilters, aggregateConfig)
+    }
+  )
 
   ipcMain.handle('dataimport:get-filters', async () => {
     return getFilterDefinitions()

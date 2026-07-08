@@ -37,10 +37,13 @@ const routeDescriptions = {
   '/roles': 'Manage user roles and designations within the organization',
   '/departments': 'Manage organizational divisions and departments',
   '/id-cards': 'Design and download official Flash Express employee IDs',
-  '/data-import': 'Import CSV or Excel sheets for advanced filtering and calculations (parcels weight counting)',
+  '/data-import':
+    'Import CSV or Excel sheets for advanced filtering and calculations (parcels weight counting)',
   '/analytics': 'Query datasets, compute stats, and run cargo/parcel weight filter calculations',
-  '/filter-config': 'Configure which spreadsheet columns are filterable in the Data Analytics dashboard',
-  '/settings': 'Configure attendance rules, admin profile, and custom dynamic filters for imported spreadsheets',
+  '/filter-config':
+    'Configure which spreadsheet columns are filterable in the Data Analytics dashboard',
+  '/settings':
+    'Configure attendance rules, admin profile, and custom dynamic filters for imported spreadsheets',
   '/backup': 'Back up your local database and staff photos or restore from a previous archive',
   '/audit-logs': 'Track all administrative operations and database updates'
 }
@@ -68,7 +71,8 @@ function getPageDescription(pathname) {
   if (routeDescriptions[pathname]) return routeDescriptions[pathname]
   // Check for dynamic segments
   if (pathname.startsWith('/staff/edit/')) return routeDescriptions['/staff/edit']
-  if (pathname.match(/^\/staff\/[^/]+$/)) return 'Employee details, role history, and security QR code'
+  if (pathname.match(/^\/staff\/[^/]+$/))
+    return 'Employee details, role history, and security QR code'
   if (pathname.startsWith('/id-cards/')) return routeDescriptions['/id-cards']
   return null
 }
@@ -79,7 +83,8 @@ function getBreadcrumbs(pathname) {
   let currentPath = ''
   for (const segment of segments) {
     currentPath += `/${segment}`
-    const label = routeTitles[currentPath] ||
+    const label =
+      routeTitles[currentPath] ||
       segment
         .split('-')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -157,9 +162,7 @@ export default function Header() {
           </nav>
 
           {/* Page Title */}
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight truncate">
-            {pageTitle}
-          </h2>
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight truncate">{pageTitle}</h2>
           {/* Page Description */}
           {pageDescription && (
             <p className="text-xs text-slate-400 mt-0.5 truncate">{pageDescription}</p>
@@ -198,7 +201,9 @@ export default function Header() {
               data-tooltip="Refresh"
               data-tooltip-pos="bottom"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-sky-500' : 'text-slate-500'}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-sky-500' : 'text-slate-500'}`}
+              />
             </button>
           )}
         </div>

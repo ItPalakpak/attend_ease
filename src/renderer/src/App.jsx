@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 
 // Layouts
 import MainLayout from './components/layout/MainLayout'
+import TitleBar from './components/layout/TitleBar'
 
 // Pages
 import LoginPage from './pages/LoginPage'
@@ -31,7 +32,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-full w-full items-center justify-center bg-slate-50 dark:bg-[#0b0f19]">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
       </div>
     )
@@ -48,49 +49,54 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-      <HashRouter>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<LoginPage />} />
+        <HashRouter>
+          <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-[#0b0f19]">
+            <TitleBar />
+            <div className="flex flex-1 overflow-hidden">
+              <Routes>
+                {/* Public Route */}
+                <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected Routes inside MainLayout */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Dashboard Redirect */}
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            
-            {/* Main Application Pages */}
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="staff" element={<StaffListPage />} />
-            <Route path="staff/new" element={<StaffFormPage />} />
-            <Route path="staff/edit/:id" element={<StaffFormPage />} />
-            <Route path="staff/:id" element={<StaffProfilePage />} />
-            <Route path="scan" element={<AttendanceScanPage />} />
-            <Route path="attendance" element={<AttendanceHistoryPage />} />
-            <Route path="gasoline" element={<GasolineSubsidyPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="roles" element={<RolesPage />} />
+                {/* Protected Routes inside MainLayout */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  {/* Dashboard Redirect */}
+                  <Route index element={<Navigate to="/dashboard" replace />} />
 
-            <Route path="id-cards" element={<IDCardPage />} />
-            <Route path="id-cards/:id" element={<IDCardPage />} />
-            <Route path="data-import" element={<DataImportPage />} />
-            <Route path="analytics" element={<DataAnalyticsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="backup" element={<BackupRestorePage />} />
-            <Route path="audit-logs" element={<AuditLogPage />} />
-          </Route>
+                  {/* Main Application Pages */}
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="staff" element={<StaffListPage />} />
+                  <Route path="staff/new" element={<StaffFormPage />} />
+                  <Route path="staff/edit/:id" element={<StaffFormPage />} />
+                  <Route path="staff/:id" element={<StaffProfilePage />} />
+                  <Route path="scan" element={<AttendanceScanPage />} />
+                  <Route path="attendance" element={<AttendanceHistoryPage />} />
+                  <Route path="gasoline" element={<GasolineSubsidyPage />} />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="roles" element={<RolesPage />} />
 
-          {/* Fallback Redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </HashRouter>
-    </AuthProvider>
+                  <Route path="id-cards" element={<IDCardPage />} />
+                  <Route path="id-cards/:id" element={<IDCardPage />} />
+                  <Route path="data-import" element={<DataImportPage />} />
+                  <Route path="analytics" element={<DataAnalyticsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="backup" element={<BackupRestorePage />} />
+                  <Route path="audit-logs" element={<AuditLogPage />} />
+                </Route>
+
+                {/* Fallback Redirect */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+          </div>
+        </HashRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

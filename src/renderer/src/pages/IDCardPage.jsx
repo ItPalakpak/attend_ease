@@ -91,7 +91,12 @@ export default function IDCardPage() {
         await document.fonts.ready
       }
       await new Promise((resolve) => setTimeout(resolve, 300))
-      const canvas = await html2canvas(element, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: null })
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      })
       const dataUrl = canvas.toDataURL('image/png')
       const link = document.createElement('a')
       link.download = filename
@@ -157,12 +162,11 @@ export default function IDCardPage() {
     flexDirection: 'column',
     boxShadow: '0 24px 64px rgba(0,0,0,0.32)',
     position: 'relative',
-    fontFamily: '"Outfit", "Inter", system-ui, -apple-system, sans-serif',
+    fontFamily: '"Outfit", "Inter", system-ui, -apple-system, sans-serif'
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-
       {/* ── Controls Bar ── */}
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm print:hidden sm:flex-row sm:items-center">
         {/* Back button */}
@@ -176,8 +180,11 @@ export default function IDCardPage() {
         {/* Staff Selector */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <label className="text-sm font-bold text-slate-700 shrink-0">Select Employee:</label>
-          <select value={selectedStaffId} onChange={handleStaffChange}
-            className="w-full flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30">
+          <select
+            value={selectedStaffId}
+            onChange={handleStaffChange}
+            className="w-full flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30"
+          >
             <option value="">-- Choose Staff Member --</option>
             {staffList.map((s) => (
               <option key={s.id} value={String(s.id)}>
@@ -190,18 +197,26 @@ export default function IDCardPage() {
         {/* Action Buttons */}
         {staff && (
           <div className="flex flex-row gap-2 shrink-0">
-            <button onClick={handleDownloadFront} disabled={isCapturingFront}
-              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:opacity-50">
+            <button
+              onClick={handleDownloadFront}
+              disabled={isCapturingFront}
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
+            >
               <Download size={15} />
               <span>{isCapturingFront ? 'Generating…' : 'Download Front'}</span>
             </button>
-            <button onClick={handleDownloadBack} disabled={isCapturingBack}
-              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:opacity-50">
+            <button
+              onClick={handleDownloadBack}
+              disabled={isCapturingBack}
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
+            >
               <Download size={15} />
               <span>{isCapturingBack ? 'Generating…' : 'Download Back'}</span>
             </button>
-            <button onClick={handlePrint}
-              className="flex items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black shadow-md transition hover:bg-yellow-500 active:scale-95">
+            <button
+              onClick={handlePrint}
+              className="flex items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black shadow-md transition hover:bg-yellow-500 active:scale-95"
+            >
               <Printer size={15} />
               <span>Print Card</span>
             </button>
@@ -214,24 +229,54 @@ export default function IDCardPage() {
         <div className="flex flex-col items-center justify-center h-[40vh] border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 p-6 print:hidden">
           <CreditCard size={48} className="stroke-1 text-slate-300" />
           <h3 className="mt-4 text-base font-bold text-slate-700">No Staff Selected</h3>
-          <p className="text-sm text-slate-400 mt-1">Choose an employee above to generate their ID card.</p>
+          <p className="text-sm text-slate-400 mt-1">
+            Choose an employee above to generate their ID card.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-10 md:flex-row md:justify-center print:flex-row print:justify-center print:gap-12 animate-fade-in">
-
           {/* ====================================
               FRONT PREVIEW CARD (Optimized for display)
              ==================================== */}
           <div className="print:my-0">
-            <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-slate-400 print:hidden">Front Side</h4>
+            <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-slate-400 print:hidden">
+              Front Side
+            </h4>
             <div ref={frontCardRef} style={cardStyle}>
               {/* Background Image */}
-              <img src={idFrontBg} alt="Card Front Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', zIndex: 1 }} />
+              <img
+                src={idFrontBg}
+                alt="Card Front Background"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'fill',
+                  zIndex: 1
+                }}
+              />
 
               {/* Profile Photo */}
-              <div style={{ position: 'absolute', top: '102px', left: '96px', width: '108px', height: '108px', borderRadius: '50%', overflow: 'hidden', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '102px',
+                  left: '96px',
+                  width: '108px',
+                  height: '108px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  zIndex: 10
+                }}
+              >
                 {photoBase64 ? (
-                  <img src={photoBase64} alt={staff.first_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img
+                    src={photoBase64}
+                    alt={staff.first_name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 ) : (
                   <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }} fill="#888">
                     <circle cx="50" cy="36" r="22" />
@@ -241,90 +286,185 @@ export default function IDCardPage() {
               </div>
 
               {/* Data fields values (Visual Preview Coordinates) */}
-              <div style={{
-                position: 'absolute',
-                top: '258px',
-                left: '145px',
-                fontSize: getFullName().length > 25 ? '10px' : getFullName().length > 20 ? '11px' : '13px',
-                fontWeight: '800',
-                color: '#111111',
-                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-                lineHeight: '1.2',
-                zIndex: 10,
-                width: '148px',
-                whiteSpace: 'normal',
-                wordWrap: 'break-word',
-                maxHeight: '34px',
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '258px',
+                  left: '145px',
+                  fontSize:
+                    getFullName().length > 25
+                      ? '10px'
+                      : getFullName().length > 20
+                        ? '11px'
+                        : '13px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  lineHeight: '1.2',
+                  zIndex: 10,
+                  width: '148px',
+                  whiteSpace: 'normal',
+                  wordWrap: 'break-word',
+                  maxHeight: '34px'
+                }}
+              >
                 {getFullName()}
               </div>
 
-              <div style={{
-                position: 'absolute',
-                top: '284px',
-                left: '145px',
-                fontSize: '13px',
-                fontWeight: '800',
-                color: '#111111',
-                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-                lineHeight: '1.2',
-                zIndex: 10,
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '284px',
+                  left: '145px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  lineHeight: '1.2',
+                  zIndex: 10
+                }}
+              >
                 {staff.employee_number || staff.staff_id}
               </div>
 
-              <div style={{
-                position: 'absolute',
-                top: '306px',
-                left: '145px',
-                fontSize: '13px',
-                fontWeight: '800',
-                color: '#111111',
-                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-                lineHeight: '1.2',
-                zIndex: 10,
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '306px',
+                  left: '145px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  lineHeight: '1.2',
+                  zIndex: 10
+                }}
+              >
                 {staff.department || 'Operations'}
               </div>
 
-              <div style={{
-                position: 'absolute',
-                top: '330px',
-                left: '145px',
-                fontSize: '13px',
-                fontWeight: '800',
-                color: '#111111',
-                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-                lineHeight: '1.2',
-                zIndex: 10,
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '330px',
+                  left: '145px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  lineHeight: '1.2',
+                  zIndex: 10
+                }}
+              >
                 {getValidUntil()}
               </div>
 
               {/* Position Value */}
-              <div style={{ position: 'absolute', top: '380px', left: '78px', fontSize: '16px', fontWeight: '900', color: '#111111', textTransform: 'uppercase', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', lineHeight: '1.2', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '380px',
+                  left: '78px',
+                  fontSize: '16px',
+                  fontWeight: '900',
+                  color: '#111111',
+                  textTransform: 'uppercase',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  lineHeight: '1.2',
+                  zIndex: 10
+                }}
+              >
                 {staff.role_name || 'RIDER'}
               </div>
 
               {/* QR Code Overlay */}
-              <div style={{ position: 'absolute', bottom: '9px', left: '22px', width: '58px', height: '58px', background: 'white', padding: '2px', borderRadius: '0px', border: '1.5px solid #111111', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '9px',
+                  left: '22px',
+                  width: '58px',
+                  height: '58px',
+                  background: 'white',
+                  padding: '2px',
+                  borderRadius: '0px',
+                  border: '1.5px solid #111111',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10
+                }}
+              >
                 {qrBase64 ? (
-                  <img src={qrBase64} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img
+                    src={qrBase64}
+                    alt="QR"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', color: 'white', fontWeight: 'bold' }}>QR</div>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: '#111111',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '7px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    QR
+                  </div>
                 )}
               </div>
 
               {/* Footer details */}
-              <div style={{ position: 'absolute', bottom: '39px', left: '168px', fontSize: '11px', fontWeight: '900', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', letterSpacing: '0.04em', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '39px',
+                  left: '168px',
+                  fontSize: '11px',
+                  fontWeight: '900',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  letterSpacing: '0.04em',
+                  zIndex: 10
+                }}
+              >
                 {staff.employee_number || staff.staff_id}
               </div>
 
-              <div style={{ position: 'absolute', bottom: '26px', left: '138px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '26px',
+                  left: '138px',
+                  fontSize: '9px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  zIndex: 10
+                }}
+              >
                 Claveria (MO)002
               </div>
 
-              <div style={{ position: 'absolute', bottom: '11px', right: '18px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', textAlign: 'right', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '11px',
+                  right: '18px',
+                  fontSize: '9px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  textAlign: 'right',
+                  zIndex: 10
+                }}
+              >
                 Claveria (MO)002 | {getIssuedDate()}
               </div>
             </div>
@@ -334,27 +474,86 @@ export default function IDCardPage() {
               BACK PREVIEW CARD (Optimized for display)
              ==================================== */}
           <div className="print:my-0">
-            <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-slate-400 print:hidden">Back Side</h4>
+            <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-slate-400 print:hidden">
+              Back Side
+            </h4>
             <div ref={backCardRef} style={cardStyle}>
               {/* Background Image */}
-              <img src={idBackBg} alt="Card Back Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', zIndex: 1 }} />
+              <img
+                src={idBackBg}
+                alt="Card Back Background"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'fill',
+                  zIndex: 1
+                }}
+              />
 
               {/* QR Code Overlay (bottom right) */}
-              <div style={{ position: 'absolute', bottom: '38px', right: '19px', width: '78px', height: '78px', background: 'white', padding: '2px', borderRadius: '0px', border: '1.5px solid #111111', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '38px',
+                  right: '19px',
+                  width: '78px',
+                  height: '78px',
+                  background: 'white',
+                  padding: '2px',
+                  borderRadius: '0px',
+                  border: '1.5px solid #111111',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10
+                }}
+              >
                 {qrBase64 ? (
-                  <img src={qrBase64} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img
+                    src={qrBase64}
+                    alt="QR"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '6px', color: 'white', fontWeight: 'bold' }}>QR</div>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: '#111111',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '6px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    QR
+                  </div>
                 )}
               </div>
 
               {/* Human Resources | Verified | Date Issued bottom right */}
-              <div style={{ position: 'absolute', bottom: '11px', right: '23px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', textAlign: 'right', zIndex: 10 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '11px',
+                  right: '23px',
+                  fontSize: '9px',
+                  fontWeight: '800',
+                  color: '#111111',
+                  fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                  textAlign: 'right',
+                  zIndex: 10
+                }}
+              >
                 Claveria (MO)002 | Verified | {getIssuedDate()}
               </div>
             </div>
           </div>
-
         </div>
       )}
 
@@ -363,15 +562,41 @@ export default function IDCardPage() {
          =================================================== */}
       {staff && (
         <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', zIndex: -100 }}>
-
           {/* Front Export Card */}
           <div ref={frontExportRef} style={cardStyle}>
-            <img src={idFrontBg} alt="Export Card Front Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', zIndex: 1 }} />
+            <img
+              src={idFrontBg}
+              alt="Export Card Front Background"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'fill',
+                zIndex: 1
+              }}
+            />
 
             {/* Profile Photo */}
-            <div style={{ position: 'absolute', top: '102px', left: '96px', width: '108px', height: '108px', borderRadius: '50%', overflow: 'hidden', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '102px',
+                left: '96px',
+                width: '108px',
+                height: '108px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                zIndex: 10
+              }}
+            >
               {photoBase64 ? (
-                <img src={photoBase64} alt={staff.first_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={photoBase64}
+                  alt={staff.first_name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               ) : (
                 <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }} fill="#888">
                   <circle cx="50" cy="36" r="22" />
@@ -381,113 +606,261 @@ export default function IDCardPage() {
             </div>
 
             {/* Data fields values (Export coordinates shifted up to align perfectly with the background) */}
-            <div style={{
-              position: 'absolute',
-              top: '254px',
-              left: '145px',
-              fontSize: getFullName().length > 25 ? '10px' : getFullName().length > 20 ? '11px' : '13px',
-              fontWeight: '800',
-              color: '#111111',
-              fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-              lineHeight: '1.1',
-              zIndex: 10,
-              width: '148px',
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              maxHeight: '34px',
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '254px',
+                left: '145px',
+                fontSize:
+                  getFullName().length > 25 ? '10px' : getFullName().length > 20 ? '11px' : '13px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                lineHeight: '1.1',
+                zIndex: 10,
+                width: '148px',
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                maxHeight: '34px'
+              }}
+            >
               {getFullName()}
             </div>
 
-            <div style={{
-              position: 'absolute',
-              top: '277px',
-              left: '145px',
-              fontSize: '13px',
-              fontWeight: '800',
-              color: '#111111',
-              fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-              lineHeight: '1.2',
-              zIndex: 10,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '277px',
+                left: '145px',
+                fontSize: '13px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                lineHeight: '1.2',
+                zIndex: 10
+              }}
+            >
               {staff.employee_number || staff.staff_id}
             </div>
 
-            <div style={{
-              position: 'absolute',
-              top: '299px',
-              left: '145px',
-              fontSize: '13px',
-              fontWeight: '800',
-              color: '#111111',
-              fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-              lineHeight: '1.2',
-              zIndex: 10,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '299px',
+                left: '145px',
+                fontSize: '13px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                lineHeight: '1.2',
+                zIndex: 10
+              }}
+            >
               {staff.department || 'Operations'}
             </div>
 
-            <div style={{
-              position: 'absolute',
-              top: '322px',
-              left: '145px',
-              fontSize: '13px',
-              fontWeight: '800',
-              color: '#111111',
-              fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
-              lineHeight: '1.2',
-              zIndex: 10,
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '322px',
+                left: '145px',
+                fontSize: '13px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                lineHeight: '1.2',
+                zIndex: 10
+              }}
+            >
               {getValidUntil()}
             </div>
 
             {/* Position Value */}
-            <div style={{ position: 'absolute', top: '373px', left: '78px', fontSize: '16px', fontWeight: '900', color: '#111111', textTransform: 'uppercase', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', lineHeight: '1.2', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '373px',
+                left: '78px',
+                fontSize: '16px',
+                fontWeight: '900',
+                color: '#111111',
+                textTransform: 'uppercase',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                lineHeight: '1.2',
+                zIndex: 10
+              }}
+            >
               {staff.role_name || 'RIDER'}
             </div>
 
             {/* QR Code Overlay */}
-            <div style={{ position: 'absolute', bottom: '9px', left: '22px', width: '58px', height: '58px', background: 'white', padding: '2px', borderRadius: '0px', border: '1.5px solid #111111', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '9px',
+                left: '22px',
+                width: '58px',
+                height: '58px',
+                background: 'white',
+                padding: '2px',
+                borderRadius: '0px',
+                border: '1.5px solid #111111',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10
+              }}
+            >
               {qrBase64 ? (
-                <img src={qrBase64} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img
+                  src={qrBase64}
+                  alt="QR"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
               ) : (
-                <div style={{ width: '100%', height: '100%', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', color: 'white', fontWeight: 'bold' }}>QR</div>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    background: '#111111',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '7px',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  QR
+                </div>
               )}
             </div>
 
             {/* Footer details */}
-            <div style={{ position: 'absolute', bottom: '45px', left: '168px', fontSize: '11px', fontWeight: '900', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', letterSpacing: '0.04em', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '45px',
+                left: '168px',
+                fontSize: '11px',
+                fontWeight: '900',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                letterSpacing: '0.04em',
+                zIndex: 10
+              }}
+            >
               {staff.employee_number || staff.staff_id}
             </div>
 
-            <div style={{ position: 'absolute', bottom: '31px', left: '138px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '31px',
+                left: '138px',
+                fontSize: '9px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                zIndex: 10
+              }}
+            >
               Claveria (MO)002
             </div>
 
-            <div style={{ position: 'absolute', bottom: '18px', right: '18px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', textAlign: 'right', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '18px',
+                right: '18px',
+                fontSize: '9px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                textAlign: 'right',
+                zIndex: 10
+              }}
+            >
               Claveria (MO)002 | {getIssuedDate()}
             </div>
           </div>
 
           {/* Back Export Card */}
           <div ref={backExportRef} style={cardStyle}>
-            <img src={idBackBg} alt="Export Card Back Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', zIndex: 1 }} />
+            <img
+              src={idBackBg}
+              alt="Export Card Back Background"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'fill',
+                zIndex: 1
+              }}
+            />
 
             {/* QR Code Overlay (bottom right) */}
-            <div style={{ position: 'absolute', bottom: '38px', right: '19px', width: '78px', height: '78px', background: 'white', padding: '2px', borderRadius: '0px', border: '1.5px solid #111111', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '38px',
+                right: '19px',
+                width: '78px',
+                height: '78px',
+                background: 'white',
+                padding: '2px',
+                borderRadius: '0px',
+                border: '1.5px solid #111111',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10
+              }}
+            >
               {qrBase64 ? (
-                <img src={qrBase64} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img
+                  src={qrBase64}
+                  alt="QR"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
               ) : (
-                <div style={{ width: '100%', height: '100%', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '6px', color: 'white', fontWeight: 'bold' }}>QR</div>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    background: '#111111',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '6px',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  QR
+                </div>
               )}
             </div>
 
             {/* Human Resources | Verified | Date Issued bottom right */}
-            <div style={{ position: 'absolute', bottom: '11px', right: '23px', fontSize: '9px', fontWeight: '800', color: '#111111', fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif', textAlign: 'right', zIndex: 10 }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '11px',
+                right: '23px',
+                fontSize: '9px',
+                fontWeight: '800',
+                color: '#111111',
+                fontFamily: '"Plus Jakarta Sans", "Outfit", "Inter", sans-serif',
+                textAlign: 'right',
+                zIndex: 10
+              }}
+            >
               Claveria (MO)002 | Verified | {getIssuedDate()}
             </div>
           </div>
-
         </div>
       )}
 
