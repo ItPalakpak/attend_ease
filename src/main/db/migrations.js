@@ -174,10 +174,49 @@ export async function runMigrations() {
     { key: 'gasoline_weekly_limit', value: '3' }
   ]
   for (const setting of defaultSettings) {
-    await db.query('INSERT IGNORE INTO settings (\`key\`, \`value\`) VALUES (?, ?)', [
+    await db.query('INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)', [
       setting.key,
       setting.value
     ])
   }
   console.log('Seeded default application settings')
+
+  // Seed default filter definitions if none exist
+  const [filterCountRows] = await db.query('SELECT COUNT(*) as count FROM filter_definitions')
+  if (filterCountRows[0].count === 0) {
+    const defaultFilters = [
+      {
+        filter_name: 'Date Range',
+        column_key: 'Delivery Date',
+        filter_type: 'date_range',
+        options_json: '[]',
+        display_order: 1,
+        status: 'Active'
+      },
+      {
+        filter_name: 'Rider/Courier',
+        column_key: 'Final Operation Person',
+        filter_type: 'dropdown',
+        options_json: '[]',
+        display_order: 2,
+        status: 'Active'
+      },
+      {
+        filter_name: 'Weight Range',
+        column_key: 'Actual weight',
+        filter_type: 'dropdown',
+        options_json: JSON.stringify(['0-9 kgs', '10-19 kgs', '20+ kgs']),
+        display_order: 3,
+        status: 'Active'
+      }
+    ]
+    for (const f of defaultFilters) {
+      await db.query(
+        'INSERT INTO filter_definitions (filter_name, column_key, filter_type, options_json, display_order, status) VALUES (?, ?, ?, ?, ?, ?)',
+        [f.filter_name, f.column_key, f.filter_type, f.options_json, f.display_order, f.status]
+      )
+    }
+    console.log('Seeded default filter definitions')
+  }
 }
+

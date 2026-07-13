@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { useTheme } from '../../contexts/ThemeContext'
+import { getBreadcrumbs } from '../../shared/routeHelpers'
 import logoIcon from '../../assets/icon.png'
 
 export default function TitleBar() {
@@ -9,6 +10,7 @@ export default function TitleBar() {
   const location = useLocation()
   const { theme } = useTheme()
   const isLoginPage = location.pathname === '/login'
+  const breadcrumbs = getBreadcrumbs(location.pathname)
   const [isMaximized, setIsMaximized] = useState(false)
 
   const platform = window.api?.platform || 'win32'
@@ -84,6 +86,28 @@ export default function TitleBar() {
           <span className="text-[10px] opacity-60 font-medium tracking-tight">
             Staff Attendance System
           </span>
+          {!isLoginPage && breadcrumbs.length > 1 && (
+            <>
+              <span className="text-[10px] opacity-30 select-none mx-0.5">/</span>
+              <nav className="flex items-center gap-1 text-[10px]" style={{ WebkitAppRegion: 'no-drag' }}>
+                {breadcrumbs.map((crumb, i) => (
+                  <span key={crumb.path} className="flex items-center gap-1">
+                    {i > 0 && <span className="opacity-30 select-none text-[8px]">&gt;</span>}
+                    {i < breadcrumbs.length - 1 ? (
+                      <Link
+                        to={crumb.path}
+                        className="opacity-60 hover:opacity-100 hover:text-sky-500 transition-colors duration-150"
+                      >
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold opacity-90 text-slate-700 dark:text-slate-200">{crumb.label}</span>
+                    )}
+                  </span>
+                ))}
+              </nav>
+            </>
+          )}
         </div>
       </div>
 
@@ -91,7 +115,7 @@ export default function TitleBar() {
       <div className="flex flex-1 items-center justify-end h-full">
         {!isLoginPage && (
           <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-semibold tracking-wide mr-4">
-            v1.0.0
+            ALPHA-v1.0.0
           </span>
         )}
 

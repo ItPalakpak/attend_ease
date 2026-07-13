@@ -1,5 +1,5 @@
 import { ipcMain, dialog } from 'electron'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { extname } from 'path'
 import { verifyLogin, changePassword } from './db/auth.js'
 import { getRoles, getActiveRoles, addRole, updateRole, deleteRole } from './db/roles.js'
@@ -36,7 +36,9 @@ import {
   getFilterDefinitions,
   getActiveFilterDefinitions,
   addFilterDefinition,
-  deleteFilterDefinition
+  updateFilterDefinition,
+  deleteFilterDefinition,
+  getDatasetMetadata
 } from './db/dataimport.js'
 import { createBackup, restoreBackup } from './db/backup.js'
 import {
@@ -265,5 +267,22 @@ export function registerIpcHandlers() {
 
   ipcMain.handle('gasoline:get-weekly-usage', async (event, { staffId, dateStr }) => {
     return getRiderWeeklyUsage(staffId, dateStr)
+  })
+
+  // File System - Save files from base64
+  ipcMain.handle('fs:write-file-base64', async (event, { filePath, base64Data }) => {
+    try {
+      const buffer = Buffer.from(base64Data, 'base64')
+      writeFileSync(filePath, buffer)
+      return { success: true }
+    } catch (err) {
+      console.error('fs:write-file-base64 error:', err)
+      return { success: false, message: err.message }
+    }
+  })
+
+  // Data Import - Get dataset metadata (min/max date, riders)
+  ipcMain.handle('dataimport:get-metadata', async (event, datasetId) => {
+    return getDatasetMetadata(datasetId)
   })
 }

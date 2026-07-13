@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination from '../components/ui/Pagination'
+import * as XLSX from 'xlsx'
 import {
   Fuel,
   Settings,
@@ -65,6 +66,9 @@ export default function GasolineSubsidyPage() {
     () => getWeekRange(new Date().toISOString().split('T')[0]).end
   )
 
+  // Rider Filter state
+  const [selectedRiderId, setSelectedRiderId] = useState('all')
+
   // Form states
   const [formStaffId, setFormStaffId] = useState('')
   const [formLiters, setFormLiters] = useState('1')
@@ -104,8 +108,8 @@ export default function GasolineSubsidyPage() {
       }
 
       const list = await window.api.getStaffList()
-      // Filter only active staff members
-      setStaffList(list?.filter((s) => s.employment_status === 'Active') || [])
+      // Filter only active staff members with Courier role
+      setStaffList(list?.filter((s) => s.employment_status === 'Active' && s.role_name?.toLowerCase() === 'courier') || [])
 
       const records = await window.api.getGasolineSubsidies({
         startDate: dateFrom,
@@ -314,6 +318,127 @@ export default function GasolineSubsidyPage() {
     }
   }
 
+  // Excel Export Dialog
+  const handleExportExcel = async () => {
+    if (filteredSubsidies.length === 0) {
+      showStatus('error', 'No records to export.')
+      return
+    }
+
+    try {
+      let riderFilterText = 'All Riders'
+      if (selectedRiderId && selectedRiderId !== 'all') {
+        const selectedRider = uniqueRiders.find((r) => String(r.id) === String(selectedRiderId))
+        if (selectedRider) {
+          riderFilterText = `${selectedRider.name} (${selectedRider.employee_number})`
+        }
+      }
+
+      const defaultFilename = `gasoline_subsidy_report_${dateFrom}_to_${dateTo}.xlsx`
+      const fileDialogRes = await window.api.saveFileDialog({
+        title: 'Export Gasoline Subsidy Report',
+        defaultPath: defaultFilename,
+        filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }]
+      })
+
+      const targetPath = typeof fileDialogRes === 'object' ? fileDialogRes.filePath : fileDialogRes
+      const isCanceled = typeof fileDialogRes === 'object' ? fileDialogRes.canceled : !targetPath
+
+      if (isCanceled || !targetPath) return
+
+      // Build worksheet array of arrays with enhanced text layout design
+      const rows = [
+        ['GASOLINE SUBSIDY REPORT'],
+        [`Period: ${dateFrom} to ${dateTo}`],
+        [`Rider Filter: ${riderFilterText}`],
+        [],
+        ['SUMMARY STATISTICS'],
+        ['--------------------------------------------------'],
+        ['Total Consumed Liters', `${aggregates.totalLiters.toFixed(2)} L`],
+        ['Total Employer Payable', `PHP ${aggregates.totalEmployerPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}`],
+        ['Rider Copay (Paid)', `PHP ${aggregates.totalRiderPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}`],
+        ['Rider Debt (Unpaid)', `PHP ${aggregates.totalRiderDebt.toLocaleString(undefined, { minimumFractionDigits: 2 })}`],
+        ['--------------------------------------------------'],
+        [],
+        ['TRANSACTION LOGS'],
+        ['------------------------------------------------------------------------------------------------------------------------'],
+        [
+          'Rider / Employee',
+          'Staff ID',
+          'Date',
+          'Liters',
+          'Promo Code',
+          'Rider Portion (PHP)',
+          'Status',
+          'Employer Payable (PHP)'
+        ],
+        ['------------------------------------------------------------------------------------------------------------------------']
+      ]
+
+      // Append data rows
+      filteredSubsidies.forEach((item) => {
+        rows.push([
+          item.rider_name,
+          item.formatted_staff_id,
+          item.date,
+          parseFloat(item.liters).toFixed(2),
+          item.is_promo === 1 ? 'PROMO' : 'NONE',
+          parseFloat(item.amount).toFixed(2),
+          item.is_promo === 1 ? 'FREE' : item.status,
+          parseFloat(item.subsidy).toFixed(2)
+        ])
+      })
+
+      const ws = XLSX.utils.aoa_to_sheet(rows)
+
+      // Find the maximum number of columns in any row
+      let maxCols = 0
+      rows.forEach((row) => {
+        if (row.length > maxCols) {
+          maxCols = row.length
+        }
+      })
+
+      // Set column widths dynamically based on content (ignoring headers, separators, titles)
+      const colWidths = Array.from({ length: maxCols }, (_, colIndex) => {
+        let maxLen = 12 // default minimum width
+        rows.forEach((row, rowIndex) => {
+          // Skip title rows, blank rows, and design separators
+          if (rowIndex < 4 || row.length === 0) return
+          
+          const firstCell = String(row[0] || '')
+          if (
+            firstCell.startsWith('-') ||
+            firstCell.startsWith('=') ||
+            firstCell === 'SUMMARY STATISTICS' ||
+            firstCell === 'TRANSACTION LOGS'
+          ) {
+            return
+          }
+
+          const cellValue = row[colIndex]
+          if (cellValue !== undefined && cellValue !== null) {
+            const cellLen = String(cellValue).length
+            if (cellLen > maxLen) {
+              maxLen = cellLen
+            }
+          }
+        })
+        return { wch: maxLen + 3 } // add padding for comfortable reading
+      })
+      ws['!cols'] = colWidths
+
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Gasoline Subsidy')
+
+      XLSX.writeFile(wb, targetPath)
+      showStatus('success', 'Report exported successfully to Excel.')
+    } catch (err) {
+      console.error('Failed to export Excel:', err)
+      showStatus('error', 'Failed to export Excel report.')
+    }
+  }
+
   // Live Copay Calculations (Rider & Employer)
   const previewCalculation = useMemo(() => {
     const liters = parseFloat(formLiters) || 0
@@ -337,7 +462,43 @@ export default function GasolineSubsidyPage() {
     }
   }, [formLiters, formStatus, formIsPromo, settings])
 
-  // Total summary aggregates for the active week
+  // Filter subsidies based on selected rider
+  const filteredSubsidies = useMemo(() => {
+    if (!selectedRiderId || selectedRiderId === 'all') {
+      return subsidies
+    }
+    return subsidies.filter((item) => String(item.staff_id) === String(selectedRiderId))
+  }, [subsidies, selectedRiderId])
+
+  // Get unique riders present in active staff list or loaded subsidies
+  const uniqueRiders = useMemo(() => {
+    const ridersMap = new Map()
+    
+    // Include active couriers from staffList
+    staffList.forEach((s) => {
+      ridersMap.set(Number(s.id), {
+        id: Number(s.id),
+        name: `${s.first_name} ${s.last_name}`,
+        employee_number: s.employee_number || s.staff_id
+      })
+    })
+
+    // Include any rider from loaded subsidies in the active range (e.g. resigned/inactive)
+    subsidies.forEach((item) => {
+      const sId = Number(item.staff_id)
+      if (sId && !ridersMap.has(sId)) {
+        ridersMap.set(sId, {
+          id: sId,
+          name: item.rider_name,
+          employee_number: item.formatted_staff_id
+        })
+      }
+    })
+
+    return Array.from(ridersMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [staffList, subsidies])
+
+  // Total summary aggregates for the active week (filtered by selected rider)
   const aggregates = useMemo(() => {
     let totalLiters = 0
     let totalEmployerPayable = 0
@@ -345,7 +506,7 @@ export default function GasolineSubsidyPage() {
     let totalRiderDebt = 0
     let promoCount = 0
 
-    subsidies.forEach((item) => {
+    filteredSubsidies.forEach((item) => {
       const liters = parseFloat(item.liters) || 0
       totalLiters += liters
 
@@ -370,15 +531,15 @@ export default function GasolineSubsidyPage() {
       totalRiderDebt,
       promoCount
     }
-  }, [subsidies])
+  }, [filteredSubsidies])
 
   // Pagination Math
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const paginatedSubsidies = subsidies.slice(startIndex, endIndex)
+  const paginatedSubsidies = filteredSubsidies.slice(startIndex, endIndex)
 
   return (
-    <div className="h-[calc(100vh-186px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-4 pb-2 pr-2">
       {/* Global alert messages (static) */}
       {message && (
         <div
@@ -462,14 +623,37 @@ export default function GasolineSubsidyPage() {
 
       {/* Date Range & Actions */}
       <div className="shrink-0 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <DateRangePicker
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onChange={({ dateFrom: from, dateTo: to }) => {
-            setDateFrom(from)
-            setDateTo(to)
-          }}
-        />
+        <div className="flex flex-wrap items-center gap-4">
+          <DateRangePicker
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onChange={({ dateFrom: from, dateTo: to }) => {
+              setDateFrom(from)
+              setDateTo(to)
+            }}
+          />
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+              Rider:
+            </span>
+            <select
+              value={selectedRiderId}
+              onChange={(e) => {
+                setSelectedRiderId(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 outline-none transition focus:border-sky-500 focus:bg-white"
+            >
+              <option value="all">All Riders</option>
+              {uniqueRiders.map((r) => (
+                <option key={r.id} value={String(r.id)}>
+                  {r.name} ({r.employee_number})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -492,6 +676,17 @@ export default function GasolineSubsidyPage() {
           >
             <Download size={14} />
             Import Excel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            data-tooltip="Export Excel"
+            data-tooltip-pos="bottom"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-sky-500"
+          >
+            <FileSpreadsheet size={14} />
+            Export Excel
           </button>
         </div>
       </div>
@@ -671,7 +866,7 @@ export default function GasolineSubsidyPage() {
             <div className="shrink-0 py-3 px-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h2 className="text-xs font-bold text-slate-700 flex items-center gap-2">
                 <FileSpreadsheet className="text-slate-400" size={14} />
-                Filtered Logs ({subsidies.length} entries)
+                Filtered Logs ({filteredSubsidies.length} entries)
               </h2>
 
               <span className="text-[9px] font-bold text-slate-400 font-mono">
@@ -681,7 +876,7 @@ export default function GasolineSubsidyPage() {
 
             {/* Scrollable Table Area */}
             <div className="flex-1 overflow-y-auto overflow-x-auto">
-              {subsidies.length === 0 ? (
+              {filteredSubsidies.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 text-slate-400 h-full">
                   <Fuel size={48} className="stroke-1 text-slate-300 animate-pulse mb-3" />
                   <p className="text-xs font-bold">No transactions logged for this week.</p>
@@ -762,7 +957,7 @@ export default function GasolineSubsidyPage() {
 
             <Pagination
               currentPage={currentPage}
-              totalItems={subsidies.length}
+              totalItems={filteredSubsidies.length}
               itemsPerPage={itemsPerPage}
               onChangePage={setCurrentPage}
               onChangeItemsPerPage={setItemsPerPage}

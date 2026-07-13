@@ -72,6 +72,9 @@ const api = {
   updateFilterDefinition: (id, filter) =>
     ipcRenderer.invoke('dataimport:update-filter', { id, filter }),
   deleteFilterDefinition: (id) => ipcRenderer.invoke('dataimport:delete-filter', id),
+  getDatasetMetadata: (datasetId) => ipcRenderer.invoke('dataimport:get-metadata', datasetId),
+  writeFileBase64: (filePath, base64Data) =>
+    ipcRenderer.invoke('fs:write-file-base64', { filePath, base64Data }),
 
   // Backup & Restore
   backupSystem: (destPath) => ipcRenderer.invoke('system:backup', destPath),

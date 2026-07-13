@@ -395,7 +395,7 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = '' }) 
   return (
     <div className={`drp ${className}`} ref={ref}>
       <button
-        className={`drp__trigger${isActive ? ' drp__trigger--active' : ''}`}
+        className={`drp__trigger${isActive ? ' drp__trigger--active' : ''} ${className.includes('w-full') ? 'w-full justify-between' : ''}`}
         onClick={() => setOpen((p) => !p)}
         type="button"
         title="Filter by date range"

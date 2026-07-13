@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Users, UserCheck, Clock, UserX, Shield, Building2 } from 'lucide-react'
 import StatusBadge from '../components/ui/StatusBadge'
+import Pagination from '../components/ui/Pagination'
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -14,6 +15,8 @@ export default function DashboardPage() {
     totalDepts: 0
   })
   const [attendance, setAttendance] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -115,10 +118,15 @@ export default function DashboardPage() {
     }
   ]
 
+  const paginatedAttendance = attendance.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
   return (
-    <div className="space-y-6">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-6 pb-2 pr-2">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="shrink-0 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {statCards.map((card, idx) => (
           <div
             key={idx}
@@ -147,8 +155,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Today's Attendance Table */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-lg">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="flex-1 min-h-0 rounded-2xl border border-slate-100 bg-white p-6 shadow-lg flex flex-col overflow-hidden">
+        <div className="mb-4 flex items-center justify-between shrink-0">
           <div>
             <h2 className="text-lg font-bold text-slate-800">Today's Attendance</h2>
             <p className="text-xs text-slate-500">
@@ -158,12 +166,13 @@ export default function DashboardPage() {
         </div>
 
         {attendance.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-slate-400 p-6">
             <UserCheck size={36} className="stroke-1" />
             <p className="mt-2 text-sm">No attendance records logged for today yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="flex-1 overflow-y-auto overflow-x-auto pb-1 pr-1">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -177,7 +186,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
-                {attendance.map((log) => (
+                {paginatedAttendance.map((log) => (
                   <tr
                     key={log.staff_id}
                     onClick={() => navigate(`/staff/${log.staff_id}`)}
@@ -223,6 +232,14 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={attendance.length}
+            itemsPerPage={itemsPerPage}
+            onChangePage={setCurrentPage}
+            onChangeItemsPerPage={setItemsPerPage}
+          />
+          </>
         )}
       </div>
     </div>

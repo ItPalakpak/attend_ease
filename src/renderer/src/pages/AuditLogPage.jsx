@@ -134,7 +134,7 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-4 pb-2 pr-2">
       {/* Controls */}
       <div className="shrink-0 flex flex-col gap-4 sm:flex-row sm:items-center rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
         <div className="relative flex-1">

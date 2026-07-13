@@ -129,7 +129,7 @@ export default function DataImportPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-211px)] flex flex-col overflow-hidden space-y-4 pb-2 pr-2">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-4 pb-2 pr-2">
       <div className="flex-1 min-h-0 grid grid-cols-1 gap-6 lg:grid-cols-12 overflow-hidden pb-1 pr-1">
         {/* Left side upload form */}
         <div className="lg:col-span-5 flex flex-col h-full max-h-full pb-1 pr-1">
